@@ -1,351 +1,26 @@
-# React Tutorial with TypeScript - Part 2: Adding Interactivity
+# React Tutorial with TypeScript - Part 3: Managing Complex State
 
-A hands-on introduction to React interactivity concepts using TypeScript. This tutorial continues from Part 1, progressively enhancing the HelloWorld component to demonstrate event handling, state management, and React's rendering behavior.
+A hands-on introduction to advanced state management in React using TypeScript. This tutorial continues from Parts 1 & 2, demonstrating how to properly update complex state like objects and arrays.
 
 ## Table of Contents
 
-1. [Responding to Events](#1-responding-to-events)
-2. [State: A Component's Memory](#2-state-a-components-memory)
-3. [Render and Commit](#3-render-and-commit)
-4. [State as a Snapshot](#4-state-as-a-snapshot)
+1. [Queueing a Series of State Updates](#1-queueing-a-series-of-state-updates)
+2. [Updating Objects in State](#2-updating-objects-in-state)
+3. [Updating Arrays in State](#3-updating-arrays-in-state)
 
 ---
 
-## 1. Responding to Events
+## 1. Queueing a Series of State Updates
 
-React lets you add **event handlers** to JSX—functions that trigger in response to user interactions like clicking, hovering, and typing.
+React batches state updates for performance. Understanding how updates are queued helps you write predictable code.
 
-### Step 1: Add a Basic Event Handler
+### How React Batches Updates
 
-Update HelloWorld to handle a button click:
+React waits until **all code in an event handler finishes** before processing state updates. Multiple `setState` calls trigger only one re-render.
 
-```tsx
-// src/components/HelloWorld.tsx
-import './HelloWorld.scss';
+### Step 1: Understanding the Queue
 
-interface HelloWorldProps {
-  name: string;
-}
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  // Define the event handler inside the component
-  const handleClick = () => {
-    alert(`Hello, ${name}! You clicked the button.`);
-  };
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-      <button className="btn btn-primary" onClick={handleClick}>
-        Click me
-      </button>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  return (
-    <div className="app">
-      <HelloWorld name="World" />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Key Concepts
-
-**Naming Convention**: Event handlers start with `handle` followed by the event name (`handleClick`, `handleSubmit`, `handleMouseEnter`).
-
-**Pass, Don't Call**: Notice we pass `onClick={handleClick}` without parentheses. Adding parentheses would call the function immediately during render!
-
-```tsx
-// ✅ Correct - passes the function reference
-<button onClick={handleClick}>
-
-// ❌ Wrong - calls the function immediately during render
-<button onClick={handleClick()}>
-```
-
-### Step 2: Inline Event Handlers
-
-For simple logic, you can define handlers inline:
-
-```tsx
-// src/components/HelloWorld.tsx
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-}
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-
-      {/* Inline handler with arrow function */}
-      <button
-        className="btn btn-primary"
-        onClick={() => alert(`Hello, ${name}!`)}
-      >
-        Greet
-      </button>
-
-      {/* Another inline handler */}
-      <button
-        className="btn btn-secondary"
-        onMouseEnter={() => console.log('Mouse entered!')}
-      >
-        Hover over me
-      </button>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-### Step 3: Passing Event Handlers as Props
-
-Parent components can control child behavior by passing handlers as props:
-
-```tsx
-// src/components/HelloWorld.tsx
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-  onGreet: (name: string) => void;  // Event handler prop
-  onDismiss?: () => void;           // Optional handler
-}
-
-const HelloWorld = ({ name, onGreet, onDismiss }: HelloWorldProps) => {
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-
-      <div className="button-group">
-        <button
-          className="btn btn-primary"
-          onClick={() => onGreet(name)}
-        >
-          Greet
-        </button>
-
-        {onDismiss && (
-          <button
-            className="btn btn-secondary"
-            onClick={onDismiss}
-          >
-            Dismiss
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  // Define handlers in the parent
-  const handleGreet = (name: string) => {
-    alert(`Greetings, ${name}! Welcome to React.`);
-  };
-
-  const handleDismiss = () => {
-    console.log('Card dismissed');
-  };
-
-  return (
-    <div className="app">
-      <HelloWorld
-        name="Alice"
-        onGreet={handleGreet}
-        onDismiss={handleDismiss}
-      />
-      <HelloWorld
-        name="Bob"
-        onGreet={handleGreet}
-        // No onDismiss - button won't show
-      />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Step 4: Event Propagation and Stopping It
-
-Events **bubble up** the component tree. Use `e.stopPropagation()` to prevent this:
-
-```tsx
-// src/components/HelloWorld.tsx
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-  onCardClick?: () => void;
-}
-
-const HelloWorld = ({ name, onCardClick }: HelloWorldProps) => {
-  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); // Prevents the card click from firing
-    alert(`Button clicked for ${name}`);
-  };
-
-  return (
-    <div
-      className="hello-world"
-      onClick={onCardClick}
-      style={{ cursor: onCardClick ? 'pointer' : 'default' }}
-    >
-      <h1>Hello, {name}!</h1>
-      <p className="subtitle">Click the card or the button</p>
-
-      <button className="btn btn-primary" onClick={handleButtonClick}>
-        Click me (stops propagation)
-      </button>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  return (
-    <div className="app">
-      <HelloWorld
-        name="World"
-        onCardClick={() => alert('Card was clicked!')}
-      />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Step 5: Preventing Default Behavior
-
-Use `e.preventDefault()` to stop default browser actions (like form submission):
-
-```tsx
-// src/components/HelloWorld.tsx
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  title: string;
-  onSubmit: (value: string) => void;
-}
-
-const HelloWorld = ({ title, onSubmit }: HelloWorldProps) => {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevents page reload
-    const formData = new FormData(e.currentTarget);
-    const inputValue = formData.get('greeting') as string;
-    onSubmit(inputValue);
-  };
-
-  return (
-    <div className="hello-world">
-      <h1>{title}</h1>
-
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="greeting"
-          placeholder="Enter a greeting..."
-          className="input"
-        />
-        <button type="submit" className="btn btn-primary">
-          Submit
-        </button>
-      </form>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  const handleFormSubmit = (value: string) => {
-    alert(`You submitted: ${value}`);
-  };
-
-  return (
-    <div className="app">
-      <HelloWorld title="Greeting Form" onSubmit={handleFormSubmit} />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Key Differences
-
-| Method | Purpose |
-|--------|---------|
-| `e.stopPropagation()` | Stops event from bubbling to parent handlers |
-| `e.preventDefault()` | Prevents default browser behavior (form submit, link navigation) |
-
----
-
-## 2. State: A Component's Memory
-
-State allows components to "remember" information between renders. Regular variables reset on every render—state persists.
-
-### Why Regular Variables Don't Work
-
-```tsx
-// ❌ This won't work - variable resets on every render
-const HelloWorld = ({ name }: { name: string }) => {
-  let count = 0; // Resets to 0 every render
-
-  const handleClick = () => {
-    count = count + 1; // Changes don't trigger re-render
-    console.log(count); // Logs correctly but UI won't update
-  };
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-      <p>Count: {count}</p> {/* Always shows 0 */}
-      <button onClick={handleClick}>Increment</button>
-    </div>
-  );
-};
-```
-
-### Step 1: Using useState
-
-The `useState` hook solves both problems—it persists values AND triggers re-renders:
+Let's visualize how React processes state updates:
 
 ```tsx
 // src/components/HelloWorld.tsx
@@ -354,23 +29,45 @@ import './HelloWorld.scss';
 
 interface HelloWorldProps {
   name: string;
-  initialCount?: number;
 }
 
-const HelloWorld = ({ name, initialCount = 0 }: HelloWorldProps) => {
-  // useState returns [currentValue, setterFunction]
-  const [count, setCount] = useState(initialCount);
+interface QueueItem {
+  action: string;
+  inputValue: number;
+  outputValue: number;
+}
 
-  const handleIncrement = () => {
-    setCount(count + 1); // Updates state AND triggers re-render
+const HelloWorld = ({ name }: HelloWorldProps) => {
+  const [count, setCount] = useState(0);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+
+  const handleBrokenAdd3 = () => {
+    // All three see count as 0 (or current snapshot)
+    const snapshot = count;
+
+    setQueue([
+      { action: `setCount(${snapshot} + 1)`, inputValue: snapshot, outputValue: snapshot + 1 },
+      { action: `setCount(${snapshot} + 1)`, inputValue: snapshot, outputValue: snapshot + 1 },
+      { action: `setCount(${snapshot} + 1)`, inputValue: snapshot, outputValue: snapshot + 1 },
+    ]);
+
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+    // Result: count becomes 1, not 3!
   };
 
-  const handleDecrement = () => {
-    setCount(count - 1);
-  };
+  const handleCorrectAdd3 = () => {
+    setQueue([
+      { action: 'setCount(n => n + 1)', inputValue: count, outputValue: count + 1 },
+      { action: 'setCount(n => n + 1)', inputValue: count + 1, outputValue: count + 2 },
+      { action: 'setCount(n => n + 1)', inputValue: count + 2, outputValue: count + 3 },
+    ]);
 
-  const handleReset = () => {
-    setCount(initialCount);
+    setCount(n => n + 1);
+    setCount(n => n + 1);
+    setCount(n => n + 1);
+    // Result: count becomes 3!
   };
 
   return (
@@ -379,16 +76,42 @@ const HelloWorld = ({ name, initialCount = 0 }: HelloWorldProps) => {
       <p className="subtitle">Count: {count}</p>
 
       <div className="button-group">
-        <button className="btn btn-secondary" onClick={handleDecrement}>
-          -
+        <button className="btn btn-secondary" onClick={handleBrokenAdd3}>
+          +3 (broken)
         </button>
-        <button className="btn btn-primary" onClick={handleIncrement}>
-          +
+        <button className="btn btn-primary" onClick={handleCorrectAdd3}>
+          +3 (works!)
         </button>
-        <button className="btn btn-secondary" onClick={handleReset}>
+        <button className="btn btn-secondary" onClick={() => { setCount(0); setQueue([]); }}>
           Reset
         </button>
       </div>
+
+      {queue.length > 0 && (
+        <div className="queue-visualization">
+          <h3>Update Queue Processing:</h3>
+          <table className="queue-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Action</th>
+                <th>Input (n)</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              {queue.map((item, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td><code>{item.action}</code></td>
+                  <td>{item.inputValue}</td>
+                  <td>{item.outputValue}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
@@ -403,8 +126,7 @@ import HelloWorld from './components/HelloWorld';
 const App = () => {
   return (
     <div className="app">
-      <HelloWorld name="Counter Demo" initialCount={0} />
-      <HelloWorld name="Another Counter" initialCount={10} />
+      <HelloWorld name="Queue Demo" />
     </div>
   );
 };
@@ -412,420 +134,9 @@ const App = () => {
 export default App;
 ```
 
-### Step 2: Multiple State Variables
+### Step 2: Mixed Updates - Replacement vs. Updater
 
-Components can have multiple independent state variables:
-
-```tsx
-// src/components/HelloWorld.tsx
-import { useState } from 'react';
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-}
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [count, setCount] = useState(0);
-  const [showDetails, setShowDetails] = useState(false);
-  const [message, setMessage] = useState('');
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-
-      {/* State 1: Counter */}
-      <div className="section">
-        <p>Count: {count}</p>
-        <button className="btn btn-primary" onClick={() => setCount(count + 1)}>
-          Increment
-        </button>
-      </div>
-
-      {/* State 2: Toggle */}
-      <div className="section">
-        <button
-          className="btn btn-secondary"
-          onClick={() => setShowDetails(!showDetails)}
-        >
-          {showDetails ? 'Hide' : 'Show'} Details
-        </button>
-        {showDetails && (
-          <p className="details">These are the hidden details!</p>
-        )}
-      </div>
-
-      {/* State 3: Text Input */}
-      <div className="section">
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
-          className="input"
-        />
-        {message && <p>You typed: {message}</p>}
-      </div>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  return (
-    <div className="app">
-      <HelloWorld name="Multi-State Demo" />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### State is Isolated and Private
-
-Each component instance has its own independent state:
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  // Each HelloWorld has its own count state!
-  return (
-    <div className="app">
-      <HelloWorld name="Counter A" initialCount={0} />
-      <HelloWorld name="Counter B" initialCount={0} />
-      {/* Clicking one doesn't affect the other */}
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Rules for Hooks
-
-**Hooks must be called at the top level of your component:**
-
-```tsx
-// ❌ WRONG - Hook inside a condition
-const HelloWorld = ({ showCounter }: { showCounter: boolean }) => {
-  if (showCounter) {
-    const [count, setCount] = useState(0); // Error!
-  }
-  return <div>...</div>;
-};
-
-// ✅ CORRECT - Hook at top level, condition in JSX
-const HelloWorld = ({ showCounter }: { showCounter: boolean }) => {
-  const [count, setCount] = useState(0); // Always called
-
-  return (
-    <div className="hello-world">
-      {showCounter && <p>Count: {count}</p>}
-    </div>
-  );
-};
-```
-
----
-
-## 3. Render and Commit
-
-React updates the screen in three phases: **Trigger → Render → Commit**. Understanding this helps explain when and how your code runs.
-
-### The Three Phases
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   TRIGGER   │ ──► │   RENDER    │ ──► │   COMMIT    │
-│             │     │             │     │             │
-│ • Initial   │     │ React calls │     │ React       │
-│   render    │     │ component   │     │ updates     │
-│ • setState  │     │ functions   │     │ the DOM     │
-└─────────────┘     └─────────────┘     └─────────────┘
-```
-
-### Step 1: Visualizing the Render Cycle
-
-Let's create a component that shows render behavior:
-
-```tsx
-// src/components/HelloWorld.tsx
-import { useState } from 'react';
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-}
-
-// This log runs during the RENDER phase
-let renderCount = 0;
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  renderCount++;
-  console.log(`Render #${renderCount} - HelloWorld is rendering`);
-
-  const [count, setCount] = useState(0);
-  const [text, setText] = useState('');
-
-  // These calculations happen during RENDER (must be pure!)
-  const doubled = count * 2;
-  const isEven = count % 2 === 0;
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-
-      <div className="info-box">
-        <p>Component has rendered {renderCount} time(s)</p>
-        <p>Count: {count} (doubled: {doubled})</p>
-        <p>Number is {isEven ? 'even' : 'odd'}</p>
-      </div>
-
-      <div className="button-group">
-        {/* Clicking triggers a re-render */}
-        <button
-          className="btn btn-primary"
-          onClick={() => setCount(count + 1)}
-        >
-          Increment (triggers render)
-        </button>
-      </div>
-
-      <div className="section">
-        {/* Typing triggers a re-render on each keystroke */}
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type to trigger renders..."
-          className="input"
-        />
-        <p className="hint">Each keystroke triggers a render!</p>
-      </div>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  return (
-    <div className="app">
-      <h1 className="app-title">Render & Commit Demo</h1>
-      <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        Open the console to see render logs
-      </p>
-      <HelloWorld name="Render Demo" />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Step 2: Triggers for Re-renders
-
-There are two triggers for rendering:
-
-1. **Initial render**: When the app first loads
-2. **State updates**: When `setState` is called
-
-```tsx
-// src/components/HelloWorld.tsx
-import { useState } from 'react';
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-}
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [triggerLog, setTriggerLog] = useState<string[]>([
-    'Initial render triggered'
-  ]);
-
-  const addTrigger = (reason: string) => {
-    // Each setTriggerLog call triggers a new render
-    setTriggerLog(prev => [...prev, reason]);
-  };
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-
-      <div className="button-group">
-        <button
-          className="btn btn-primary"
-          onClick={() => addTrigger('Button A clicked')}
-        >
-          Trigger A
-        </button>
-        <button
-          className="btn btn-secondary"
-          onClick={() => addTrigger('Button B clicked')}
-        >
-          Trigger B
-        </button>
-      </div>
-
-      <div className="log-box">
-        <h3>Render Triggers:</h3>
-        <ul className="trigger-list">
-          {triggerLog.map((log, index) => (
-            <li key={index}>{index + 1}. {log}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-### Step 3: React Only Updates What Changed
-
-React is efficient—it only updates DOM elements that actually changed:
-
-```tsx
-// src/components/HelloWorld.tsx
-import { useState, useEffect } from 'react';
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-}
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
-  const [inputValue, setInputValue] = useState('');
-
-  // Update time every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date().toLocaleTimeString());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-
-      {/* This updates every second */}
-      <p className="time-display">Current time: {time}</p>
-
-      {/* This input is NOT affected by time updates */}
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Type here - won't be affected by time updates"
-        className="input"
-      />
-
-      <p className="hint">
-        Notice: The input keeps your text even though the component
-        re-renders every second. React only updates the time display!
-      </p>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-```tsx
-// src/App.tsx
-import HelloWorld from './components/HelloWorld';
-
-const App = () => {
-  return (
-    <div className="app">
-      <HelloWorld name="Efficient Updates" />
-    </div>
-  );
-};
-
-export default App;
-```
-
-### Key Takeaways
-
-- **Trigger**: Initial render or `setState()` call
-- **Render**: React calls your component function (must be pure!)
-- **Commit**: React updates only the changed DOM elements
-- **Browser Paint**: The browser repaints the screen
-
----
-
-## 4. State as a Snapshot
-
-State behaves like a **snapshot**—it's fixed for the duration of a render. Understanding this prevents confusing bugs.
-
-### Step 1: The Snapshot Problem
-
-Each render gets its own snapshot of state that doesn't change:
-
-```tsx
-// src/components/HelloWorld.tsx
-import { useState } from 'react';
-import './HelloWorld.scss';
-
-interface HelloWorldProps {
-  name: string;
-}
-
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [count, setCount] = useState(0);
-
-  const handleClick = () => {
-    // All three use the SAME snapshot value (0 on first click)
-    setCount(count + 1); // Schedules: 0 + 1 = 1
-    setCount(count + 1); // Schedules: 0 + 1 = 1 (not 2!)
-    setCount(count + 1); // Schedules: 0 + 1 = 1 (not 3!)
-
-    // count is still 0 here - it's a snapshot!
-    console.log('Count in handler:', count); // Logs 0
-  };
-
-  return (
-    <div className="hello-world">
-      <h1>Hello, {name}!</h1>
-      <p className="subtitle">Count: {count}</p>
-
-      <button className="btn btn-primary" onClick={handleClick}>
-        +3 (but only adds 1!)
-      </button>
-
-      <p className="hint">
-        Click the button and check the console.
-        Even though we call setCount 3 times, count only increases by 1!
-      </p>
-    </div>
-  );
-};
-
-export default HelloWorld;
-```
-
-### Step 2: Understanding Why
-
-Let's visualize what happens:
+When you mix direct values with updater functions, the order matters:
 
 ```tsx
 // src/components/HelloWorld.tsx
@@ -840,19 +151,34 @@ const HelloWorld = ({ name }: HelloWorldProps) => {
   const [count, setCount] = useState(0);
   const [log, setLog] = useState<string[]>([]);
 
-  const handleBrokenIncrement = () => {
-    const snapshot = count; // Capture the snapshot value
+  const handleMixedUpdates = () => {
+    setLog([]);
 
-    setLog(prev => [...prev, `Snapshot value: ${snapshot}`]);
-    setLog(prev => [...prev, `setCount(${snapshot} + 1) = ${snapshot + 1}`]);
-    setLog(prev => [...prev, `setCount(${snapshot} + 1) = ${snapshot + 1}`]);
-    setLog(prev => [...prev, `setCount(${snapshot} + 1) = ${snapshot + 1}`]);
-    setLog(prev => [...prev, `Result: count becomes ${snapshot + 1}, not ${snapshot + 3}`]);
-    setLog(prev => [...prev, '---']);
+    // Queue: replace with 5, then add 1
+    setCount(5);           // "Replace with 5"
+    setCount(n => n + 1);  // "Add 1 to previous"
 
-    setCount(count + 1);
-    setCount(count + 1);
-    setCount(count + 1);
+    setLog([
+      '1. setCount(5) → replaces with 5',
+      '2. setCount(n => n + 1) → 5 + 1 = 6',
+      'Final result: 6'
+    ]);
+  };
+
+  const handleReplacementWins = () => {
+    setLog([]);
+
+    // Queue: add 1, add 1, then replace with 42
+    setCount(n => n + 1);  // Would make it 1
+    setCount(n => n + 1);  // Would make it 2
+    setCount(42);          // Replaces everything with 42
+
+    setLog([
+      '1. setCount(n => n + 1) → 0 + 1 = 1',
+      '2. setCount(n => n + 1) → 1 + 1 = 2',
+      '3. setCount(42) → replaces with 42',
+      'Final result: 42 (replacement wins!)'
+    ]);
   };
 
   return (
@@ -860,18 +186,22 @@ const HelloWorld = ({ name }: HelloWorldProps) => {
       <h1>Hello, {name}!</h1>
       <p className="subtitle">Count: {count}</p>
 
-      <button className="btn btn-primary" onClick={handleBrokenIncrement}>
-        +3 (broken - only adds 1)
-      </button>
-
-      <button className="btn btn-secondary" onClick={() => setLog([])}>
-        Clear Log
-      </button>
+      <div className="button-group">
+        <button className="btn btn-primary" onClick={handleMixedUpdates}>
+          Set 5, then +1
+        </button>
+        <button className="btn btn-secondary" onClick={handleReplacementWins}>
+          +1, +1, then 42
+        </button>
+        <button className="btn btn-secondary" onClick={() => { setCount(0); setLog([]); }}>
+          Reset
+        </button>
+      </div>
 
       {log.length > 0 && (
         <div className="log-box">
           {log.map((entry, i) => (
-            <p key={i} className="log-entry">{entry}</p>
+            <p key={i}>{entry}</p>
           ))}
         </div>
       )}
@@ -882,9 +212,9 @@ const HelloWorld = ({ name }: HelloWorldProps) => {
 export default HelloWorld;
 ```
 
-### Step 3: The Solution - Updater Functions
+### Step 3: Real-World Example - Async Request Tracker
 
-To increment multiple times, use an **updater function** that receives the pending state:
+Updater functions are essential for async operations:
 
 ```tsx
 // src/components/HelloWorld.tsx
@@ -895,45 +225,182 @@ interface HelloWorldProps {
   name: string;
 }
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [count, setCount] = useState(0);
+  const [pending, setPending] = useState(0);
+  const [completed, setCompleted] = useState(0);
 
-  const handleBrokenIncrement = () => {
-    // ❌ Uses snapshot - only increments by 1
-    setCount(count + 1);
-    setCount(count + 1);
-    setCount(count + 1);
-  };
+  const handleRequest = async () => {
+    // ✅ Use updater functions for async operations
+    setPending(p => p + 1);
 
-  const handleCorrectIncrement = () => {
-    // ✅ Uses updater function - increments by 3
-    setCount(prev => prev + 1); // 0 → 1
-    setCount(prev => prev + 1); // 1 → 2
-    setCount(prev => prev + 1); // 2 → 3
+    await delay(2000); // Simulate network request
+
+    setPending(p => p - 1);
+    setCompleted(c => c + 1);
   };
 
   return (
     <div className="hello-world">
       <h1>Hello, {name}!</h1>
-      <p className="subtitle">Count: {count}</p>
 
-      <div className="button-group">
-        <button className="btn btn-secondary" onClick={handleBrokenIncrement}>
-          +3 (broken)
-        </button>
-        <button className="btn btn-primary" onClick={handleCorrectIncrement}>
-          +3 (works!)
-        </button>
-        <button className="btn btn-secondary" onClick={() => setCount(0)}>
-          Reset
-        </button>
+      <div className="stats-grid">
+        <div className="stat-card pending">
+          <span className="stat-value">{pending}</span>
+          <span className="stat-label">Pending</span>
+        </div>
+        <div className="stat-card completed">
+          <span className="stat-value">{completed}</span>
+          <span className="stat-label">Completed</span>
+        </div>
       </div>
 
-      <div className="info-box">
-        <h3>Difference:</h3>
-        <code>setCount(count + 1)</code> - uses snapshot (stale)
-        <br />
-        <code>setCount(prev =&gt; prev + 1)</code> - uses latest value
+      <button className="btn btn-primary" onClick={handleRequest}>
+        Send Request (2s)
+      </button>
+
+      <p className="hint">
+        Click multiple times quickly! Each request correctly tracks
+        its pending/completed state using updater functions.
+      </p>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
+
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld name="Async Tracker" />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Naming Conventions for Updater Functions
+
+```tsx
+// Short form - first letter(s) of state variable
+setCount(c => c + 1);
+setEnabled(e => !e);
+setFirstName(fn => fn.toUpperCase());
+
+// Verbose form - full name or "prev" prefix
+setCount(count => count + 1);
+setCount(prevCount => prevCount + 1);
+```
+
+---
+
+## 2. Updating Objects in State
+
+Objects in state must be treated as **immutable**. Never mutate them directly—always create new copies.
+
+### Why Mutation Doesn't Work
+
+```tsx
+// ❌ This won't trigger a re-render!
+person.name = 'New Name';
+setPerson(person); // Same object reference
+
+// ✅ This works - new object reference
+setPerson({ ...person, name: 'New Name' });
+```
+
+### Step 1: Basic Object Updates with Spread
+
+```tsx
+// src/components/HelloWorld.tsx
+import { useState } from 'react';
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  title: string;
+}
+
+interface Person {
+  firstName: string;
+  lastName: string;
+  email: string;
+  age: number;
+}
+
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [person, setPerson] = useState<Person>({
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+    age: 25
+  });
+
+  // Generic handler for any field
+  const handleChange = (field: keyof Person, value: string | number) => {
+    setPerson({
+      ...person,      // Copy all existing fields
+      [field]: value  // Override the specific field
+    });
+  };
+
+  return (
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      <div className="form-grid">
+        <div className="form-group">
+          <label>First Name:</label>
+          <input
+            type="text"
+            value={person.firstName}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            className="input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Last Name:</label>
+          <input
+            type="text"
+            value={person.lastName}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            className="input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Email:</label>
+          <input
+            type="email"
+            value={person.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            className="input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Age:</label>
+          <input
+            type="number"
+            value={person.age}
+            onChange={(e) => handleChange('age', parseInt(e.target.value) || 0)}
+            className="input"
+          />
+        </div>
+      </div>
+
+      <div className="preview-card">
+        <h3>Preview:</h3>
+        <p><strong>{person.firstName} {person.lastName}</strong></p>
+        <p>{person.email}</p>
+        <p>Age: {person.age}</p>
       </div>
     </div>
   );
@@ -942,9 +409,186 @@ const HelloWorld = ({ name }: HelloWorldProps) => {
 export default HelloWorld;
 ```
 
-### Step 4: State Snapshot in Async Code
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
 
-The snapshot is captured when the event handler is created, not when it runs:
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld title="Edit Profile" />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Step 2: Updating Nested Objects
+
+For nested objects, you must spread at **each level**:
+
+```tsx
+// src/components/HelloWorld.tsx
+import { useState } from 'react';
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  title: string;
+}
+
+interface Address {
+  street: string;
+  city: string;
+  country: string;
+}
+
+interface UserProfile {
+  name: string;
+  address: Address;
+  settings: {
+    theme: 'light' | 'dark';
+    notifications: boolean;
+  };
+}
+
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [profile, setProfile] = useState<UserProfile>({
+    name: 'Alice',
+    address: {
+      street: '123 Main St',
+      city: 'New York',
+      country: 'USA'
+    },
+    settings: {
+      theme: 'light',
+      notifications: true
+    }
+  });
+
+  // Update name (top level)
+  const handleNameChange = (name: string) => {
+    setProfile({
+      ...profile,
+      name
+    });
+  };
+
+  // Update address (nested object)
+  const handleAddressChange = (field: keyof Address, value: string) => {
+    setProfile({
+      ...profile,
+      address: {
+        ...profile.address,  // Spread the nested object too!
+        [field]: value
+      }
+    });
+  };
+
+  // Update settings (nested object)
+  const handleThemeToggle = () => {
+    setProfile({
+      ...profile,
+      settings: {
+        ...profile.settings,
+        theme: profile.settings.theme === 'light' ? 'dark' : 'light'
+      }
+    });
+  };
+
+  const handleNotificationsToggle = () => {
+    setProfile({
+      ...profile,
+      settings: {
+        ...profile.settings,
+        notifications: !profile.settings.notifications
+      }
+    });
+  };
+
+  return (
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      {/* Name - Top level */}
+      <div className="section">
+        <h3>Basic Info</h3>
+        <div className="form-group">
+          <label>Name:</label>
+          <input
+            type="text"
+            value={profile.name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            className="input"
+          />
+        </div>
+      </div>
+
+      {/* Address - Nested */}
+      <div className="section">
+        <h3>Address</h3>
+        <div className="form-group">
+          <label>Street:</label>
+          <input
+            type="text"
+            value={profile.address.street}
+            onChange={(e) => handleAddressChange('street', e.target.value)}
+            className="input"
+          />
+        </div>
+        <div className="form-group">
+          <label>City:</label>
+          <input
+            type="text"
+            value={profile.address.city}
+            onChange={(e) => handleAddressChange('city', e.target.value)}
+            className="input"
+          />
+        </div>
+        <div className="form-group">
+          <label>Country:</label>
+          <input
+            type="text"
+            value={profile.address.country}
+            onChange={(e) => handleAddressChange('country', e.target.value)}
+            className="input"
+          />
+        </div>
+      </div>
+
+      {/* Settings - Nested */}
+      <div className="section">
+        <h3>Settings</h3>
+        <div className="toggle-group">
+          <button
+            className={`btn ${profile.settings.theme === 'dark' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={handleThemeToggle}
+          >
+            Theme: {profile.settings.theme}
+          </button>
+          <button
+            className={`btn ${profile.settings.notifications ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={handleNotificationsToggle}
+          >
+            Notifications: {profile.settings.notifications ? 'On' : 'Off'}
+          </button>
+        </div>
+      </div>
+
+      <div className="preview-card">
+        <h3>Current State:</h3>
+        <pre>{JSON.stringify(profile, null, 2)}</pre>
+      </div>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+### Step 3: Interactive Position Tracker
+
+A practical example with mouse tracking:
 
 ```tsx
 // src/components/HelloWorld.tsx
@@ -955,50 +599,68 @@ interface HelloWorldProps {
   name: string;
 }
 
+interface Position {
+  x: number;
+  y: number;
+}
+
 const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [count, setCount] = useState(0);
-  const [alerts, setAlerts] = useState<string[]>([]);
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [history, setHistory] = useState<Position[]>([]);
 
-  const handleClick = () => {
-    const snapshotValue = count; // Capture for demonstration
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const newPosition = {
+      x: Math.round(e.clientX - rect.left),
+      y: Math.round(e.clientY - rect.top)
+    };
 
-    setCount(count + 5);
+    setPosition(newPosition);
 
-    // This alert will show the OLD value (snapshot)
-    setTimeout(() => {
-      setAlerts(prev => [
-        ...prev,
-        `Alert after 3s: count was ${snapshotValue} when clicked`
-      ]);
-    }, 3000);
+    // Add to history (also immutable update!)
+    setHistory(prev => [...prev.slice(-9), newPosition]);
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
   };
 
   return (
     <div className="hello-world">
       <h1>Hello, {name}!</h1>
-      <p className="subtitle">Count: {count}</p>
 
-      <button className="btn btn-primary" onClick={handleClick}>
-        +5 and show alert in 3 seconds
-      </button>
+      <div
+        className="tracking-area"
+        onPointerMove={handlePointerMove}
+      >
+        <div
+          className="cursor-dot"
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px)`
+          }}
+        />
+        <p className="tracking-label">Move your cursor here</p>
+      </div>
 
-      <p className="hint">
-        Click multiple times quickly! Each alert shows the count
-        value from when THAT click happened (the snapshot).
-      </p>
+      <div className="position-display">
+        <p>Position: <code>{'{'} x: {position.x}, y: {position.y} {'}'}</code></p>
+      </div>
 
-      {alerts.length > 0 && (
-        <div className="log-box">
-          <h3>Delayed Alerts:</h3>
-          {alerts.map((alert, i) => (
-            <p key={i}>{alert}</p>
-          ))}
-          <button
-            className="btn btn-secondary"
-            onClick={() => setAlerts([])}
-          >
-            Clear
-          </button>
+      {history.length > 0 && (
+        <div className="history-section">
+          <div className="history-header">
+            <h3>Recent Positions:</h3>
+            <button className="btn btn-secondary" onClick={clearHistory}>
+              Clear
+            </button>
+          </div>
+          <div className="history-list">
+            {history.map((pos, i) => (
+              <span key={i} className="history-item">
+                ({pos.x}, {pos.y})
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -1015,7 +677,7 @@ import HelloWorld from './components/HelloWorld';
 const App = () => {
   return (
     <div className="app">
-      <HelloWorld name="Snapshot Demo" />
+      <HelloWorld name="Position Tracker" />
     </div>
   );
 };
@@ -1023,7 +685,30 @@ const App = () => {
 export default App;
 ```
 
-### Step 5: Practical Example - Form with Delayed Submit
+### Key Rules for Objects
+
+| Do | Don't |
+|---|---|
+| `setPerson({...person, name: 'New'})` | `person.name = 'New'` |
+| Create new objects | Mutate existing objects |
+| Spread at each nesting level | Shallow copy nested objects |
+
+---
+
+## 3. Updating Arrays in State
+
+Like objects, arrays must be treated as immutable. Use methods that return new arrays instead of mutating.
+
+### Methods Reference
+
+| Operation | ❌ Mutates (avoid) | ✅ Returns New Array (use) |
+|-----------|-------------------|---------------------------|
+| **Adding** | `push`, `unshift` | `[...arr, item]`, `concat` |
+| **Removing** | `pop`, `shift`, `splice` | `filter`, `slice` |
+| **Replacing** | `splice`, `arr[i] = x` | `map` |
+| **Sorting** | `sort`, `reverse` | Copy first: `[...arr].sort()` |
+
+### Step 1: Adding and Removing Items
 
 ```tsx
 // src/components/HelloWorld.tsx
@@ -1031,69 +716,96 @@ import { useState } from 'react';
 import './HelloWorld.scss';
 
 interface HelloWorldProps {
-  name: string;
+  title: string;
 }
 
-const HelloWorld = ({ name }: HelloWorldProps) => {
-  const [to, setTo] = useState('Alice');
-  const [message, setMessage] = useState('Hello!');
-  const [status, setStatus] = useState('');
+interface Task {
+  id: number;
+  text: string;
+  completed: boolean;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+let nextId = 1;
 
-    // Capture snapshots
-    const snapshotTo = to;
-    const snapshotMessage = message;
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [inputValue, setInputValue] = useState('');
 
-    setStatus('Sending...');
+  // ADD: Use spread to create new array
+  const handleAddTask = () => {
+    if (!inputValue.trim()) return;
 
-    // Simulate network delay
-    setTimeout(() => {
-      // Uses snapshot values, not current input values!
-      setStatus(`Sent "${snapshotMessage}" to ${snapshotTo}`);
-    }, 2000);
+    setTasks([
+      ...tasks,  // Keep existing items
+      { id: nextId++, text: inputValue, completed: false }  // Add new item
+    ]);
+    setInputValue('');
+  };
+
+  // ADD TO START: New item first
+  const handleAddToStart = () => {
+    if (!inputValue.trim()) return;
+
+    setTasks([
+      { id: nextId++, text: inputValue, completed: false },  // New item first
+      ...tasks  // Then existing items
+    ]);
+    setInputValue('');
+  };
+
+  // REMOVE: Use filter to exclude item
+  const handleRemoveTask = (id: number) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
+  // CLEAR ALL
+  const handleClearAll = () => {
+    setTasks([]);
   };
 
   return (
     <div className="hello-world">
-      <h1>Hello, {name}!</h1>
+      <h1>{title}</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>To:</label>
-          <select
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="select"
-          >
-            <option value="Alice">Alice</option>
-            <option value="Bob">Bob</option>
-            <option value="Charlie">Charlie</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Message:</label>
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="input"
-          />
-        </div>
-
-        <button type="submit" className="btn btn-primary">
-          Send (2s delay)
+      <div className="input-row">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+          placeholder="Enter a task..."
+          className="input"
+        />
+        <button className="btn btn-primary" onClick={handleAddTask}>
+          Add to End
         </button>
-      </form>
+        <button className="btn btn-secondary" onClick={handleAddToStart}>
+          Add to Start
+        </button>
+      </div>
 
-      {status && <p className="status">{status}</p>}
-
-      <p className="hint">
-        Try this: Click Send, then quickly change the recipient.
-        The message still goes to the original recipient (snapshot)!
-      </p>
+      {tasks.length === 0 ? (
+        <p className="empty-message">No tasks yet. Add one above!</p>
+      ) : (
+        <>
+          <ul className="task-list">
+            {tasks.map(task => (
+              <li key={task.id} className="task-item">
+                <span className="task-text">{task.text}</span>
+                <button
+                  className="btn-remove"
+                  onClick={() => handleRemoveTask(task.id)}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button className="btn btn-secondary" onClick={handleClearAll}>
+            Clear All
+          </button>
+        </>
+      )}
     </div>
   );
 };
@@ -1101,14 +813,433 @@ const HelloWorld = ({ name }: HelloWorldProps) => {
 export default HelloWorld;
 ```
 
-### Key Takeaways
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
 
-| Concept | Explanation |
-|---------|-------------|
-| **Snapshot** | State value is fixed within a render |
-| **Multiple setStates** | All use the same snapshot value |
-| **Updater function** | `prev => prev + 1` gets the pending state |
-| **Async code** | setTimeout/fetch use the snapshot from when handler was created |
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld title="Task List" />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Step 2: Transforming and Replacing Items
+
+Use `map()` to transform or replace items:
+
+```tsx
+// src/components/HelloWorld.tsx
+import { useState } from 'react';
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  title: string;
+}
+
+interface Task {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+const initialTasks: Task[] = [
+  { id: 1, text: 'Learn React', completed: true },
+  { id: 2, text: 'Learn TypeScript', completed: false },
+  { id: 3, text: 'Build a project', completed: false },
+];
+
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+
+  // TOGGLE: Use map to replace one item
+  const handleToggle = (id: number) => {
+    setTasks(tasks.map(task => {
+      if (task.id === id) {
+        // Return NEW object with toggled completed
+        return { ...task, completed: !task.completed };
+      }
+      return task;  // Return unchanged
+    }));
+  };
+
+  // TRANSFORM ALL: Mark all as completed
+  const handleCompleteAll = () => {
+    setTasks(tasks.map(task => ({
+      ...task,
+      completed: true
+    })));
+  };
+
+  // TRANSFORM ALL: Reset all
+  const handleResetAll = () => {
+    setTasks(tasks.map(task => ({
+      ...task,
+      completed: false
+    })));
+  };
+
+  const completedCount = tasks.filter(t => t.completed).length;
+
+  return (
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      <div className="progress-bar">
+        <div
+          className="progress-fill"
+          style={{ width: `${(completedCount / tasks.length) * 100}%` }}
+        />
+        <span className="progress-text">
+          {completedCount} / {tasks.length} completed
+        </span>
+      </div>
+
+      <ul className="task-list">
+        {tasks.map(task => (
+          <li
+            key={task.id}
+            className={`task-item ${task.completed ? 'completed' : ''}`}
+            onClick={() => handleToggle(task.id)}
+          >
+            <span className="checkbox">
+              {task.completed ? '✓' : '○'}
+            </span>
+            <span className="task-text">{task.text}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="button-group">
+        <button className="btn btn-primary" onClick={handleCompleteAll}>
+          Complete All
+        </button>
+        <button className="btn btn-secondary" onClick={handleResetAll}>
+          Reset All
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+### Step 3: Inserting at a Specific Position
+
+Use `slice()` to insert at any position:
+
+```tsx
+// src/components/HelloWorld.tsx
+import { useState } from 'react';
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  title: string;
+}
+
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [items, setItems] = useState<string[]>(['First', 'Second', 'Third']);
+  const [newItem, setNewItem] = useState('');
+  const [insertIndex, setInsertIndex] = useState(0);
+
+  const handleInsert = () => {
+    if (!newItem.trim()) return;
+
+    // Use slice to insert at specific position
+    const newItems = [
+      ...items.slice(0, insertIndex),  // Items before insertion point
+      newItem,                          // New item
+      ...items.slice(insertIndex)       // Items after insertion point
+    ];
+
+    setItems(newItems);
+    setNewItem('');
+  };
+
+  return (
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      <div className="insert-controls">
+        <input
+          type="text"
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          placeholder="New item..."
+          className="input"
+        />
+        <select
+          value={insertIndex}
+          onChange={(e) => setInsertIndex(parseInt(e.target.value))}
+          className="select"
+        >
+          {items.map((_, index) => (
+            <option key={index} value={index}>
+              Before "{items[index]}"
+            </option>
+          ))}
+          <option value={items.length}>At the end</option>
+        </select>
+        <button className="btn btn-primary" onClick={handleInsert}>
+          Insert
+        </button>
+      </div>
+
+      <ul className="item-list">
+        {items.map((item, index) => (
+          <li key={index} className="item">
+            <span className="item-index">{index}</span>
+            <span className="item-text">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+### Step 4: Sorting and Reversing
+
+**Always copy the array first** before using mutating methods:
+
+```tsx
+// src/components/HelloWorld.tsx
+import { useState } from 'react';
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  title: string;
+}
+
+interface Person {
+  id: number;
+  name: string;
+  age: number;
+}
+
+const initialPeople: Person[] = [
+  { id: 1, name: 'Charlie', age: 35 },
+  { id: 2, name: 'Alice', age: 28 },
+  { id: 3, name: 'Bob', age: 42 },
+  { id: 4, name: 'Diana', age: 31 },
+];
+
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [people, setPeople] = useState<Person[]>(initialPeople);
+
+  // SORT: Copy first, then sort
+  const sortByName = () => {
+    const sorted = [...people].sort((a, b) => a.name.localeCompare(b.name));
+    setPeople(sorted);
+  };
+
+  const sortByAge = () => {
+    const sorted = [...people].sort((a, b) => a.age - b.age);
+    setPeople(sorted);
+  };
+
+  // REVERSE: Copy first, then reverse
+  const reverseOrder = () => {
+    const reversed = [...people].reverse();
+    setPeople(reversed);
+  };
+
+  // RESET
+  const resetOrder = () => {
+    setPeople(initialPeople);
+  };
+
+  return (
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      <div className="button-group">
+        <button className="btn btn-primary" onClick={sortByName}>
+          Sort by Name
+        </button>
+        <button className="btn btn-primary" onClick={sortByAge}>
+          Sort by Age
+        </button>
+        <button className="btn btn-secondary" onClick={reverseOrder}>
+          Reverse
+        </button>
+        <button className="btn btn-secondary" onClick={resetOrder}>
+          Reset
+        </button>
+      </div>
+
+      <ul className="people-list">
+        {people.map(person => (
+          <li key={person.id} className="person-item">
+            <span className="person-name">{person.name}</span>
+            <span className="person-age">Age: {person.age}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="info-box">
+        <p><strong>Important:</strong> Always use <code>[...array]</code> before <code>.sort()</code> or <code>.reverse()</code>!</p>
+        <code>
+          const sorted = [...people].sort(...); // ✅ Correct
+        </code>
+      </div>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
+
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld title="Sortable List" />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Step 5: Updating Objects Inside Arrays
+
+This is a common pattern—use `map()` to create new objects:
+
+```tsx
+// src/components/HelloWorld.tsx
+import { useState } from 'react';
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  title: string;
+}
+
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+const initialCart: CartItem[] = [
+  { id: 1, name: 'React Book', price: 29.99, quantity: 1 },
+  { id: 2, name: 'TypeScript Course', price: 49.99, quantity: 1 },
+  { id: 3, name: 'Coffee Mug', price: 12.99, quantity: 2 },
+];
+
+const HelloWorld = ({ title }: HelloWorldProps) => {
+  const [cart, setCart] = useState<CartItem[]>(initialCart);
+
+  // UPDATE OBJECT IN ARRAY: Use map + spread
+  const updateQuantity = (id: number, delta: number) => {
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQuantity = Math.max(0, item.quantity + delta);
+        return { ...item, quantity: newQuantity };  // New object!
+      }
+      return item;
+    }));
+  };
+
+  // REMOVE: Filter out items with 0 quantity
+  const removeEmpty = () => {
+    setCart(cart.filter(item => item.quantity > 0));
+  };
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return (
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      <div className="cart-list">
+        {cart.map(item => (
+          <div key={item.id} className="cart-item">
+            <div className="cart-item-info">
+              <span className="cart-item-name">{item.name}</span>
+              <span className="cart-item-price">${item.price.toFixed(2)}</span>
+            </div>
+
+            <div className="quantity-controls">
+              <button
+                className="btn-quantity"
+                onClick={() => updateQuantity(item.id, -1)}
+              >
+                -
+              </button>
+              <span className="quantity-value">{item.quantity}</span>
+              <button
+                className="btn-quantity"
+                onClick={() => updateQuantity(item.id, 1)}
+              >
+                +
+              </button>
+            </div>
+
+            <span className="cart-item-subtotal">
+              ${(item.price * item.quantity).toFixed(2)}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="cart-total">
+        <span>Total:</span>
+        <span className="total-value">${total.toFixed(2)}</span>
+      </div>
+
+      <button className="btn btn-secondary" onClick={removeEmpty}>
+        Remove Empty Items
+      </button>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
+
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld title="Shopping Cart" />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Common Mistake: Shallow Copy
+
+```tsx
+// ❌ WRONG: Shallow copy still mutates the object!
+const newCart = [...cart];
+const item = newCart.find(i => i.id === id);
+item.quantity = 5;  // Mutates the original object!
+setCart(newCart);
+
+// ✅ CORRECT: Create new object with map
+setCart(cart.map(item =>
+  item.id === id
+    ? { ...item, quantity: 5 }  // New object
+    : item
+));
+```
 
 ---
 
@@ -1132,17 +1263,16 @@ npm run dev
 
 - [React Official Documentation](https://react.dev)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
-- [React TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
+- [Immer Library](https://immerjs.github.io/immer/) - For complex state updates
 
 ---
 
 ## Summary
 
-This tutorial covered four fundamental React interactivity concepts:
+This tutorial covered three advanced state management concepts:
 
-1. **Responding to Events**: Add handlers with `onClick`, pass handlers as props, control propagation
-2. **State: A Component's Memory**: Use `useState` to persist values and trigger re-renders
-3. **Render and Commit**: Understand the Trigger → Render → Commit cycle
-4. **State as a Snapshot**: State is fixed per render; use updater functions for sequential updates
+1. **Queueing State Updates**: Use updater functions (`n => n + 1`) for multiple updates and async code
+2. **Updating Objects**: Use spread syntax (`{...obj, prop: value}`) at each nesting level
+3. **Updating Arrays**: Use `map()`, `filter()`, `slice()`, and spread—never mutate directly
 
-Master these concepts to build truly interactive React applications with TypeScript!
+Master these patterns to handle any state complexity in your React applications with TypeScript!
