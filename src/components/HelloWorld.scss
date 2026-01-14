@@ -1,14 +1,353 @@
+// ============================================
+// HelloWorld Component Styles
+// Supports all tutorial sections
+// ============================================
+
+// Variables
+$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$success-color: #10b981;
+$warning-color: #f59e0b;
+$danger-color: #ef4444;
+$inactive-color: #6b7280;
+$text-primary: #1f2937;
+$text-secondary: #6b7280;
+$bg-light: #f9fafb;
+$bg-card: #ffffff;
+$border-color: #e5e7eb;
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+$radius-sm: 6px;
+$radius-md: 12px;
+$radius-lg: 16px;
+
+// ============================================
+// Base HelloWorld Card
+// ============================================
 .hello-world {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: $bg-card;
+  border-radius: $radius-lg;
+  padding: 2rem;
+  margin: 1rem;
+  box-shadow: $shadow-md;
+  border: 1px solid $border-color;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
 
   h1 {
+    color: $text-primary;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: $primary-gradient;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  h2 {
+    color: $text-primary;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  // ============================================
+  // Section 1: Props - Subtitle & Children
+  // ============================================
+  .subtitle {
+    color: $text-secondary;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .children-content {
+    background: $bg-light;
+    border-radius: $radius-md;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-left: 4px solid #764ba2;
+
+    p {
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+
+  // ============================================
+  // Section 2: Conditional Rendering
+  // ============================================
+  .user-status {
+    margin: 1rem 0;
+  }
+
+  .notification {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    padding: 0.75rem 1rem;
+    border-radius: $radius-sm;
+    font-weight: 500;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+      content: '🔔';
+    }
+  }
+
+  // ============================================
+  // Section 3: Rendering Lists
+  // ============================================
+  .people-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+  }
+
+  .person-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: $bg-light;
+    border-radius: $radius-sm;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: darken($bg-light, 3%);
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .person-name {
+    font-weight: 600;
+    color: $text-primary;
+    flex: 1;
+  }
+
+  .person-role {
+    color: $text-secondary;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+    background: white;
+    border-radius: 9999px;
+    border: 1px solid $border-color;
+  }
+
+  .empty-message {
+    text-align: center;
+    color: $text-secondary;
+    padding: 2rem;
+    background: $bg-light;
+    border-radius: $radius-md;
+    font-style: italic;
+  }
+
+  .count {
+    color: $text-secondary;
+    font-size: 0.875rem;
+    text-align: right;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid $border-color;
+  }
+
+  // ============================================
+  // Section 4: Pure Components - Cups & Buttons
+  // ============================================
+  .cups-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: $bg-light;
+    border-radius: $radius-md;
+    margin: 1rem 0;
+    min-height: 60px;
+  }
+
+  .cup {
+    font-size: 2rem;
+    cursor: default;
+    transition: transform 0.2s ease;
+    animation: popIn 0.3s ease;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+  }
+
+  @keyframes popIn {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .button-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  // ============================================
+  // Section 5: UI as Tree
+  // ============================================
+  .node-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+  }
+
+  .tree-icon {
+    font-size: 1.25rem;
+  }
+
+  .node-name {
+    margin: 0;
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: $text-primary;
+  }
+
+  .level-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    background: $bg-light;
+    border-radius: 9999px;
+    color: $text-secondary;
+    border: 1px solid $border-color;
+  }
+
+  .node-children {
+    border-left: 2px solid $border-color;
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+  }
+
+  // Tree level styling
+  &.level-0 {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-color: #7dd3fc;
+  }
+
+  &.level-1 {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #86efac;
+    box-shadow: none;
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+
+  &.level-2 {
+    background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+    border-color: #fde047;
+    box-shadow: none;
+    padding: 0.75rem;
+    margin: 0.25rem 0;
+  }
+
+  &.level-3 {
+    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
+    border-color: #e879f9;
+    box-shadow: none;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+  }
+
+  &.level-4 {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border-color: #fdba74;
+    box-shadow: none;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+  }
+}
+
+// ============================================
+// Badges
+// ============================================
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+
+  &-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+  }
+
+  &-inactive {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    color: $inactive-color;
+  }
+
+  &-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+  }
+}
+
+// ============================================
+// Buttons
+// ============================================
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: $radius-sm;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &-primary {
+    background: $primary-gradient;
     color: white;
-    font-size: 3rem;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+      transform: translateY(-1px);
+    }
+  }
+
+  &-secondary {
+    background: $bg-light;
+    color: $text-primary;
+    border: 1px solid $border-color;
+
+    &:hover {
+      background: darken($bg-light, 5%);
+    }
   }
 }

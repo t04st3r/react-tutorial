@@ -1,6 +1,6 @@
 # React Tutorial with TypeScript
 
-A hands-on introduction to core React concepts using TypeScript. This tutorial builds upon a simple Hello World component to demonstrate essential React patterns and best practices.
+A hands-on introduction to core React concepts using TypeScript. This tutorial progressively enhances a HelloWorld component to demonstrate essential React patterns and best practices.
 
 ## Table of Contents
 
@@ -16,9 +16,9 @@ A hands-on introduction to core React concepts using TypeScript. This tutorial b
 
 Props are the way React components communicate. They allow parent components to pass data to their children, making components reusable and flexible.
 
-### Basic Props with TypeScript
+### Step 1: Add Props to HelloWorld
 
-Let's enhance our HelloWorld component to accept props:
+Update your HelloWorld component to accept a `name` prop:
 
 ```tsx
 // src/components/HelloWorld.tsx
@@ -26,14 +26,67 @@ import './HelloWorld.scss';
 
 interface HelloWorldProps {
   name: string;
-  age?: number; // Optional prop
+  subtitle?: string; // Optional prop
 }
 
-const HelloWorld = ({ name, age = 18 }: HelloWorldProps) => {
+const HelloWorld = ({ name, subtitle = 'Welcome to React' }: HelloWorldProps) => {
   return (
     <div className="hello-world">
       <h1>Hello, {name}!</h1>
-      {age && <p>You are {age} years old.</p>}
+      <p className="subtitle">{subtitle}</p>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
+
+### Step 2: Pass Props from App
+
+Now pass the props from your App component:
+
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
+
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld name="World" />
+      <HelloWorld name="React Developer" subtitle="Let's learn together!" />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Key Concepts
+
+- **TypeScript Interface**: Define prop types with `HelloWorldProps` for type safety
+- **Default Values**: Use `subtitle = 'Welcome to React'` to provide fallback values
+- **Destructuring**: Extract props directly in the function parameters
+
+### Bonus: The Children Prop
+
+Wrap content inside your component:
+
+```tsx
+// src/components/HelloWorld.tsx
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  name: string;
+  subtitle?: string;
+  children?: React.ReactNode;
+}
+
+const HelloWorld = ({ name, subtitle = 'Welcome to React', children }: HelloWorldProps) => {
+  return (
+    <div className="hello-world">
+      <h1>Hello, {name}!</h1>
+      <p className="subtitle">{subtitle}</p>
+      {children && <div className="children-content">{children}</div>}
     </div>
   );
 };
@@ -47,764 +100,531 @@ import HelloWorld from './components/HelloWorld';
 
 const App = () => {
   return (
-    <>
-      <HelloWorld name="Alice" age={25} />
-      <HelloWorld name="Bob" />
-    </>
+    <div className="app">
+      <HelloWorld name="World">
+        <p>This content is passed as children!</p>
+      </HelloWorld>
+    </div>
   );
 };
 
 export default App;
 ```
 
-### Key Concepts
-
-**TypeScript Interface**: Define prop types with an interface for type safety.
-
-**Default Values**: Use `age = 18` to provide fallback values for optional props.
-
-**Destructuring**: Extract props directly in the function parameters for cleaner code.
-
-### Passing Complex Objects
-
-Props can be any JavaScript value - objects, arrays, or even functions:
-
-```tsx
-interface Person {
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-}
-
-interface UserCardProps {
-  person: Person;
-  size?: number;
-}
-
-const UserCard = ({ person, size = 100 }: UserCardProps) => {
-  return (
-    <div className="user-card">
-      {person.avatar && (
-        <img
-          src={person.avatar}
-          alt={`${person.firstName} ${person.lastName}`}
-          width={size}
-          height={size}
-        />
-      )}
-      <h2>{person.firstName} {person.lastName}</h2>
-    </div>
-  );
-};
-```
-
-### The Children Prop
-
-The special `children` prop allows you to pass JSX content between component tags:
-
-```tsx
-interface CardProps {
-  children: React.ReactNode;
-  title?: string;
-}
-
-const Card = ({ children, title }: CardProps) => {
-  return (
-    <div className="card">
-      {title && <h3>{title}</h3>}
-      <div className="card-content">
-        {children}
-      </div>
-    </div>
-  );
-};
-
-// Usage
-const App = () => {
-  return (
-    <Card title="Welcome">
-      <HelloWorld name="World" />
-      <p>This is additional content inside the card.</p>
-    </Card>
-  );
-};
-```
-
-### Important Rules
-
-- **Props are immutable**: Never modify props directly. Treat them as read-only.
-- **Type safety**: Always define interfaces for your props in TypeScript.
-- **Optional props**: Use `?` for optional properties and provide defaults when sensible.
-
 ---
 
 ## 2. Conditional Rendering
 
-Conditional rendering lets you display different UI based on certain conditions. React uses JavaScript's native control flow.
+Conditional rendering lets you display different UI based on certain conditions.
 
-### Using If Statements
+### Step 1: Add Conditional Props to HelloWorld
 
-```tsx
-interface WelcomeMessageProps {
-  isLoggedIn: boolean;
-  username?: string;
-}
-
-const WelcomeMessage = ({ isLoggedIn, username }: WelcomeMessageProps) => {
-  if (isLoggedIn && username) {
-    return <h1>Welcome back, {username}!</h1>;
-  }
-  return <h1>Please sign in.</h1>;
-};
-```
-
-### Ternary Operator
-
-Use for inline conditional expressions:
+Update HelloWorld to conditionally show content:
 
 ```tsx
-interface StatusBadgeProps {
-  isActive: boolean;
+// src/components/HelloWorld.tsx
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  name: string;
+  subtitle?: string;
+  isLoggedIn?: boolean;
+  messageCount?: number;
 }
 
-const StatusBadge = ({ isActive }: StatusBadgeProps) => {
+const HelloWorld = ({
+  name,
+  subtitle = 'Welcome to React',
+  isLoggedIn = false,
+  messageCount = 0
+}: HelloWorldProps) => {
   return (
-    <span className={isActive ? 'badge-active' : 'badge-inactive'}>
-      {isActive ? '✅ Active' : '❌ Inactive'}
-    </span>
-  );
-};
-```
+    <div className="hello-world">
+      {/* Ternary operator for two alternatives */}
+      <h1>{isLoggedIn ? `Welcome back, ${name}!` : `Hello, ${name}!`}</h1>
 
-### Logical AND Operator
+      <p className="subtitle">{subtitle}</p>
 
-Render something only when a condition is true:
+      {/* Logical AND for conditional display */}
+      {isLoggedIn && (
+        <div className="user-status">
+          <span className="badge badge-success">Logged In</span>
+        </div>
+      )}
 
-```tsx
-interface NotificationProps {
-  messageCount: number;
-}
-
-const Notification = ({ messageCount }: NotificationProps) => {
-  return (
-    <div>
-      <h2>Inbox</h2>
+      {/* Conditional with comparison */}
       {messageCount > 0 && (
-        <p>You have {messageCount} unread messages</p>
+        <p className="notification">
+          You have {messageCount} unread message{messageCount > 1 ? 's' : ''}
+        </p>
+      )}
+
+      {/* Show different content when logged out */}
+      {!isLoggedIn && (
+        <button className="btn btn-primary">Sign In</button>
       )}
     </div>
   );
 };
+
+export default HelloWorld;
 ```
 
-**Warning**: Don't put numbers directly on the left of `&&`:
+### Step 2: Control Conditions from App
 
 ```tsx
-// ❌ BAD: Will render "0" when count is 0
-{messageCount && <p>Messages</p>}
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
 
-// ✅ GOOD: Renders nothing when count is 0
-{messageCount > 0 && <p>Messages</p>}
-```
-
-### Conditionally Assigning JSX to Variables
-
-For complex conditional logic:
-
-```tsx
-interface TodoItemProps {
-  task: string;
-  isCompleted: boolean;
-  priority: 'low' | 'medium' | 'high';
-}
-
-const TodoItem = ({ task, isCompleted, priority }: TodoItemProps) => {
-  let taskContent: React.ReactNode = task;
-
-  if (isCompleted) {
-    taskContent = <del>{task} ✅</del>;
-  } else if (priority === 'high') {
-    taskContent = <strong>{task} 🔥</strong>;
-  }
-
-  return <li className={`todo-${priority}`}>{taskContent}</li>;
-};
-```
-
-### Returning Null
-
-Components can return `null` to render nothing:
-
-```tsx
-interface ErrorMessageProps {
-  error: string | null;
-}
-
-const ErrorMessage = ({ error }: ErrorMessageProps) => {
-  if (!error) {
-    return null; // Render nothing
-  }
-
+const App = () => {
   return (
-    <div className="error">
-      <p>Error: {error}</p>
+    <div className="app">
+      {/* Guest user */}
+      <HelloWorld name="Guest" />
+
+      {/* Logged in user with messages */}
+      <HelloWorld
+        name="Alice"
+        isLoggedIn={true}
+        messageCount={5}
+        subtitle="Great to see you again!"
+      />
+
+      {/* Logged in user without messages */}
+      <HelloWorld
+        name="Bob"
+        isLoggedIn={true}
+        messageCount={0}
+      />
     </div>
   );
 };
+
+export default App;
+```
+
+### Key Patterns
+
+- **Ternary `? :`**: Choose between two alternatives
+- **Logical AND `&&`**: Show something only when condition is true
+- **Early return**: Return different JSX entirely based on conditions
+
+### Warning: Avoid Rendering Zero
+
+```tsx
+// ❌ BAD: Will render "0" when messageCount is 0
+{messageCount && <p>Messages</p>}
+
+// ✅ GOOD: Renders nothing when messageCount is 0
+{messageCount > 0 && <p>Messages</p>}
 ```
 
 ---
 
 ## 3. Rendering Lists
 
-Displaying collections of data is a common pattern in React. Use JavaScript's `map()` and `filter()` methods to transform arrays into JSX.
+Display collections of data using JavaScript's `map()` and `filter()` methods.
 
-### Basic List Rendering
+### Step 1: Create a List-Based HelloWorld
 
-```tsx
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface UserListProps {
-  users: User[];
-}
-
-const UserList = ({ users }: UserListProps) => {
-  const listItems = users.map(user => (
-    <li key={user.id}>
-      <strong>{user.name}</strong> - {user.email}
-    </li>
-  ));
-
-  return <ul>{listItems}</ul>;
-};
-
-// Usage
-const users: User[] = [
-  { id: 1, name: 'Alice', email: 'alice@example.com' },
-  { id: 2, name: 'Bob', email: 'bob@example.com' },
-  { id: 3, name: 'Charlie', email: 'charlie@example.com' },
-];
-
-<UserList users={users} />
-```
-
-### Filtering Lists
-
-Combine `filter()` with `map()` to show specific items:
+Update HelloWorld to display a list of people:
 
 ```tsx
-interface Product {
-  id: number;
-  name: string;
-  category: 'electronics' | 'clothing' | 'food';
-  price: number;
-  inStock: boolean;
-}
-
-interface ProductListProps {
-  products: Product[];
-  categoryFilter?: string;
-}
-
-const ProductList = ({ products, categoryFilter }: ProductListProps) => {
-  const filteredProducts = categoryFilter
-    ? products.filter(p => p.category === categoryFilter && p.inStock)
-    : products.filter(p => p.inStock);
-
-  return (
-    <ul>
-      {filteredProducts.map(product => (
-        <li key={product.id}>
-          {product.name} - ${product.price}
-        </li>
-      ))}
-    </ul>
-  );
-};
-```
-
-### Understanding Keys
-
-**Keys are critical** - they tell React which array item corresponds to which component.
-
-```tsx
-interface TodoProps {
-  todos: Array<{ id: string; text: string; done: boolean }>;
-}
-
-const TodoList = ({ todos }: TodoProps) => {
-  return (
-    <ul>
-      {todos.map(todo => (
-        <li key={todo.id}> {/* ✅ Use stable, unique ID */}
-          <input type="checkbox" checked={todo.done} />
-          {todo.text}
-        </li>
-      ))}
-    </ul>
-  );
-};
-```
-
-### Key Rules
-
-**✅ DO:**
-- Use database IDs or stable unique identifiers
-- Ensure keys are unique among siblings
-- Keep keys stable across re-renders
-
-**❌ DON'T:**
-- Use array indices as keys (unless the list never reorders)
-- Generate keys with `Math.random()` during render
-- Change keys between renders
-
-```tsx
-// ❌ BAD: Using index as key
-{items.map((item, index) => <li key={index}>{item}</li>)}
-
-// ❌ BAD: Generating random keys
-{items.map(item => <li key={Math.random()}>{item}</li>)}
-
-// ✅ GOOD: Using stable IDs
-{items.map(item => <li key={item.id}>{item}</li>)}
-```
-
-### Rendering Multiple Elements per Item
-
-Use React Fragments when each list item needs multiple elements:
-
-```tsx
-import { Fragment } from 'react';
+// src/components/HelloWorld.tsx
+import './HelloWorld.scss';
 
 interface Person {
   id: number;
   name: string;
-  bio: string;
+  role: string;
+  isActive: boolean;
 }
 
-interface PeopleListProps {
+interface HelloWorldProps {
+  title: string;
   people: Person[];
+  showOnlyActive?: boolean;
 }
 
-const PeopleList = ({ people }: PeopleListProps) => {
+const HelloWorld = ({ title, people, showOnlyActive = false }: HelloWorldProps) => {
+  // Filter the list if needed
+  const displayPeople = showOnlyActive
+    ? people.filter(person => person.isActive)
+    : people;
+
   return (
-    <>
-      {people.map(person => (
-        <Fragment key={person.id}>
-          <h2>{person.name}</h2>
-          <p>{person.bio}</p>
-          <hr />
-        </Fragment>
-      ))}
-    </>
+    <div className="hello-world">
+      <h1>{title}</h1>
+
+      {displayPeople.length === 0 ? (
+        <p className="empty-message">No people to display</p>
+      ) : (
+        <ul className="people-list">
+          {displayPeople.map(person => (
+            <li key={person.id} className="person-item">
+              <span className="person-name">{person.name}</span>
+              <span className="person-role">{person.role}</span>
+              <span className={`badge ${person.isActive ? 'badge-success' : 'badge-inactive'}`}>
+                {person.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="count">
+        Showing {displayPeople.length} of {people.length} people
+      </p>
+    </div>
   );
 };
+
+export default HelloWorld;
+```
+
+### Step 2: Pass List Data from App
+
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
+
+const App = () => {
+  const teamMembers = [
+    { id: 1, name: 'Alice Johnson', role: 'Developer', isActive: true },
+    { id: 2, name: 'Bob Smith', role: 'Designer', isActive: true },
+    { id: 3, name: 'Charlie Brown', role: 'Manager', isActive: false },
+    { id: 4, name: 'Diana Ross', role: 'Developer', isActive: true },
+    { id: 5, name: 'Eve Wilson', role: 'QA Engineer', isActive: false },
+  ];
+
+  return (
+    <div className="app">
+      {/* Show all team members */}
+      <HelloWorld
+        title="Our Team"
+        people={teamMembers}
+      />
+
+      {/* Show only active members */}
+      <HelloWorld
+        title="Active Team Members"
+        people={teamMembers}
+        showOnlyActive={true}
+      />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### Key Rules for Keys
+
+**✅ DO:**
+- Use stable, unique IDs from your data (`person.id`)
+- Ensure keys are unique among siblings
+
+**❌ DON'T:**
+```tsx
+// BAD: Using array index as key
+{people.map((person, index) => <li key={index}>...</li>)}
+
+// BAD: Generating random keys
+{people.map(person => <li key={Math.random()}>...</li>)}
 ```
 
 ---
 
 ## 4. Keeping Components Pure
 
-Pure components are predictable, testable, and optimizable. A pure function always returns the same output for the same input and doesn't modify external state.
+Pure components always return the same output for the same input and don't modify external state.
 
-### What is a Pure Component?
+### Step 1: Understanding Pure Components
+
+A pure HelloWorld always renders the same JSX for the same props:
 
 ```tsx
-// ✅ Pure: Same props always produce same JSX
-interface RecipeProps {
-  drinkers: number;
+// src/components/HelloWorld.tsx
+import './HelloWorld.scss';
+
+interface HelloWorldProps {
+  name: string;
+  multiplier: number;
 }
 
-const Recipe = ({ drinkers }: RecipeProps) => {
+// ✅ PURE: Same props always produce same JSX
+const HelloWorld = ({ name, multiplier }: HelloWorldProps) => {
+  // Local calculations are fine
+  const greeting = `Hello, ${name}!`;
+  const cups: JSX.Element[] = [];
+
+  // Local mutation is safe (creating array during render)
+  for (let i = 1; i <= multiplier; i++) {
+    cups.push(
+      <span key={i} className="cup" title={`Cup ${i}`}>
+        ☕
+      </span>
+    );
+  }
+
   return (
-    <ol>
-      <li>Boil {drinkers} cups of water.</li>
-      <li>Add {drinkers} spoons of tea and {0.5 * drinkers} spoons of spice.</li>
-      <li>Add {0.5 * drinkers} cups of milk to boil and sugar to taste.</li>
-    </ol>
+    <div className="hello-world">
+      <h1>{greeting}</h1>
+      <p className="subtitle">Here are {multiplier} cups of coffee for you:</p>
+      <div className="cups-container">
+        {cups}
+      </div>
+    </div>
   );
 };
+
+export default HelloWorld;
 ```
 
-Every time you call `<Recipe drinkers={2} />`, you get the same JSX output.
+### Step 2: Use from App
 
-### Impure Components (Avoid These)
+```tsx
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
+
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld name="Alice" multiplier={3} />
+      <HelloWorld name="Bob" multiplier={5} />
+      {/* Same props = Same output (pure!) */}
+      <HelloWorld name="Alice" multiplier={3} />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### What Makes a Component Impure (Avoid This!)
 
 ```tsx
 // ❌ IMPURE: Modifies external variable
-let guestCount = 0;
+let globalCount = 0;
 
-const Cup = () => {
-  guestCount = guestCount + 1; // Side effect during render!
-  return <h2>Tea cup for guest #{guestCount}</h2>;
-};
-
-// This will produce inconsistent results
-```
-
-**Why is this bad?** Calling the component multiple times produces different outputs, breaking React's assumptions.
-
-### The Pure Alternative
-
-```tsx
-// ✅ PURE: Use props instead
-interface CupProps {
-  guest: number;
-}
-
-const Cup = ({ guest }: CupProps) => {
-  return <h2>Tea cup for guest #{guest}</h2>;
-};
-
-const TeaSet = () => {
-  return (
-    <>
-      <Cup guest={1} />
-      <Cup guest={2} />
-      <Cup guest={3} />
-    </>
-  );
+const BadHelloWorld = ({ name }: { name: string }) => {
+  globalCount++; // Side effect during render!
+  return <h1>Hello #{globalCount}, {name}!</h1>;
 };
 ```
-
-### Local Mutation is Safe
-
-It's OK to change variables you created **during the same render**:
-
-```tsx
-const TeaGathering = () => {
-  const cups: JSX.Element[] = []; // Created locally
-
-  for (let i = 1; i <= 12; i++) {
-    cups.push(<Cup key={i} guest={i} />); // Safe to mutate
-  }
-
-  return <>{cups}</>;
-};
-```
-
-This is called "local mutation" - it's your component's "little secret" because nothing outside the component can observe it.
 
 ### Where Side Effects Belong
 
-**Event Handlers**: Side effects belong in functions that respond to user actions:
+Side effects go in **event handlers** or **useEffect**:
 
 ```tsx
+// src/components/HelloWorld.tsx
 import { useState } from 'react';
+import './HelloWorld.scss';
 
-interface CounterProps {
-  initialCount?: number;
+interface HelloWorldProps {
+  name: string;
+  initialCups?: number;
 }
 
-const Counter = ({ initialCount = 0 }: CounterProps) => {
-  const [count, setCount] = useState(initialCount);
+const HelloWorld = ({ name, initialCups = 1 }: HelloWorldProps) => {
+  const [cupCount, setCupCount] = useState(initialCups);
 
-  const handleClick = () => {
-    setCount(count + 1); // ✅ Side effect in event handler
-    console.log('Clicked!'); // ✅ Side effects OK here
+  // ✅ Side effect in event handler
+  const handleAddCup = () => {
+    setCupCount(prev => prev + 1);
+    console.log('Cup added!'); // Side effects OK here
   };
 
-  return <button onClick={handleClick}>Count: {count}</button>;
-};
-```
+  const handleRemoveCup = () => {
+    setCupCount(prev => Math.max(0, prev - 1));
+  };
 
-**useEffect Hook**: For side effects that can't happen during rendering:
+  return (
+    <div className="hello-world">
+      <h1>Hello, {name}!</h1>
+      <p className="subtitle">You have {cupCount} cup{cupCount !== 1 ? 's' : ''} of coffee</p>
+
+      <div className="cups-container">
+        {Array.from({ length: cupCount }, (_, i) => (
+          <span key={i} className="cup">☕</span>
+        ))}
+      </div>
+
+      <div className="button-group">
+        <button className="btn btn-primary" onClick={handleAddCup}>
+          Add Cup
+        </button>
+        <button className="btn btn-secondary" onClick={handleRemoveCup}>
+          Remove Cup
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default HelloWorld;
+```
 
 ```tsx
-import { useEffect, useState } from 'react';
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
 
-const DataFetcher = () => {
-  const [data, setData] = useState<string | null>(null);
-
-  useEffect(() => {
-    // ✅ Side effect runs after render
-    fetch('/api/data')
-      .then(res => res.json())
-      .then(setData);
-  }, []); // Empty array = run once on mount
-
-  return <div>{data ?? 'Loading...'}</div>;
+const App = () => {
+  return (
+    <div className="app">
+      <HelloWorld name="Coffee Lover" initialCups={2} />
+    </div>
+  );
 };
+
+export default App;
 ```
-
-### Why Purity Matters
-
-- **Performance**: React can skip re-rendering pure components safely
-- **Server-Side Rendering**: Same component can serve many requests
-- **Debugging**: Predictable behavior makes bugs easier to find
-- **React Features**: Features like `memo()` rely on purity
-
-### Detecting Impurity with Strict Mode
-
-React's Strict Mode calls components twice in development to expose impure code:
-
-```tsx
-// src/main.tsx
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
-```
-
-Pure components work fine when called twice. Impure components will show bugs.
 
 ### Best Practices
 
 **✅ DO:**
-- Treat props, state, and context as read-only
+- Treat props and state as read-only
 - Use `setState` to update state
-- Put side effects in event handlers or `useEffect`
-- Create new objects/arrays instead of mutating existing ones
+- Put side effects in event handlers
 
 **❌ DON'T:**
-- Modify variables that existed before rendering
+- Modify variables outside your component during render
 - Change props directly
-- Mutate DOM during render
-- Make network requests during render (use `useEffect` instead)
+- Make network requests during render
 
 ---
 
 ## 5. Your UI as a Tree
 
-React models your UI as a tree structure. Understanding this helps you debug performance issues, optimize rendering, and reason about your app's architecture.
+React models your UI as a tree structure. Understanding this helps you debug and optimize your app.
 
-### The Render Tree
+### Step 1: Create a Tree Structure
 
-The render tree shows the relationship between React components during a single render.
-
-**Example Structure:**
-
-```
-App (root component)
-├── HelloWorld
-├── UserList
-│   ├── UserCard
-│   └── UserCard
-└── Footer
-    └── Copyright
-```
-
-**In Code:**
+Let's visualize the component tree with nested HelloWorld components:
 
 ```tsx
-// App.tsx - Root Component
-import HelloWorld from './components/HelloWorld';
-import UserList from './components/UserList';
-import Footer from './components/Footer';
+// src/components/HelloWorld.tsx
+import './HelloWorld.scss';
 
-const App = () => {
-  return (
-    <>
-      <HelloWorld name="World" />
-      <UserList users={users} />
-      <Footer />
-    </>
-  );
-};
-```
-
-```tsx
-// UserList.tsx - Branch Component
-import UserCard from './UserCard';
-
-interface User {
-  id: number;
+interface HelloWorldProps {
   name: string;
+  level?: number;
+  children?: React.ReactNode;
 }
 
-interface UserListProps {
-  users: User[];
-}
+const HelloWorld = ({ name, level = 0, children }: HelloWorldProps) => {
+  const indent = level * 20;
 
-const UserList = ({ users }: UserListProps) => {
   return (
-    <div>
-      {users.map(user => (
-        <UserCard key={user.id} user={user} /> {/* Child components */}
-      ))}
+    <div
+      className={`hello-world level-${level}`}
+      style={{ marginLeft: `${indent}px` }}
+    >
+      <div className="node-header">
+        <span className="tree-icon">{children ? '📁' : '📄'}</span>
+        <h2 className="node-name">{name}</h2>
+        <span className="level-badge">Level {level}</span>
+      </div>
+
+      {children && (
+        <div className="node-children">
+          {children}
+        </div>
+      )}
     </div>
   );
 };
+
+export default HelloWorld;
 ```
+
+### Step 2: Build the Tree in App
 
 ```tsx
-// UserCard.tsx - Leaf Component
-interface UserCardProps {
-  user: { id: number; name: string };
-}
-
-const UserCard = ({ user }: UserCardProps) => {
-  return <div className="user-card">{user.name}</div>;
-};
-```
-
-### Key Characteristics of Render Trees
-
-- **Nodes are components**: Each node represents a React component (not HTML elements)
-- **Dynamic**: Changes with conditional rendering
-- **Shows data flow**: Props flow from parent to child (top to bottom)
-
-**Top-level components** (near the root):
-- Affect performance of all children beneath them
-- Often the most complex
-- Example: `App`, `Dashboard`, `Layout`
-
-**Leaf components** (at the bottom):
-- Have no children
-- Often re-render frequently
-- Example: `Button`, `Icon`, `Label`
-
-### Conditional Rendering Affects the Tree
-
-```tsx
-interface DashboardProps {
-  isLoggedIn: boolean;
-}
-
-const Dashboard = ({ isLoggedIn }: DashboardProps) => {
-  if (!isLoggedIn) {
-    return <LoginForm />; // Different tree structure
-  }
-
-  return (
-    <>
-      <Header />
-      <Sidebar />
-      <MainContent />
-    </>
-  );
-};
-```
-
-**Render tree when `isLoggedIn = false`:**
-```
-Dashboard
-└── LoginForm
-```
-
-**Render tree when `isLoggedIn = true`:**
-```
-Dashboard
-├── Header
-├── Sidebar
-└── MainContent
-```
-
-### The Module Dependency Tree
-
-This tree represents how your code files import each other.
-
-**Example Structure:**
-
-```
-App.tsx (entry point)
-├── HelloWorld.tsx
-├── UserList.tsx
-│   ├── UserCard.tsx
-│   └── types.ts
-└── Footer.tsx
-    └── Copyright.tsx
-```
-
-**In Code:**
-
-```tsx
-// App.tsx - Root module
-import HelloWorld from './components/HelloWorld'; // Dependency
-import UserList from './components/UserList';     // Dependency
-import Footer from './components/Footer';         // Dependency
+// src/App.tsx
+import HelloWorld from './components/HelloWorld';
 
 const App = () => {
   return (
-    <>
-      <HelloWorld name="World" />
-      <UserList users={[]} />
-      <Footer />
-    </>
+    <div className="app">
+      <h1 className="app-title">🌳 UI Component Tree</h1>
+
+      <div className="tree-container">
+        {/* Root node */}
+        <HelloWorld name="App" level={0}>
+
+          {/* Branch: Header */}
+          <HelloWorld name="Header" level={1}>
+            <HelloWorld name="Logo" level={2} />
+            <HelloWorld name="Navigation" level={2}>
+              <HelloWorld name="NavLink: Home" level={3} />
+              <HelloWorld name="NavLink: About" level={3} />
+              <HelloWorld name="NavLink: Contact" level={3} />
+            </HelloWorld>
+          </HelloWorld>
+
+          {/* Branch: Main Content */}
+          <HelloWorld name="Main" level={1}>
+            <HelloWorld name="Sidebar" level={2}>
+              <HelloWorld name="Menu" level={3} />
+            </HelloWorld>
+            <HelloWorld name="Content" level={2}>
+              <HelloWorld name="Article" level={3} />
+              <HelloWorld name="Comments" level={3}>
+                <HelloWorld name="Comment 1" level={4} />
+                <HelloWorld name="Comment 2" level={4} />
+              </HelloWorld>
+            </HelloWorld>
+          </HelloWorld>
+
+          {/* Leaf: Footer */}
+          <HelloWorld name="Footer" level={1} />
+
+        </HelloWorld>
+      </div>
+    </div>
   );
 };
+
+export default App;
 ```
 
-```tsx
-// UserList.tsx
-import UserCard from './UserCard';        // Dependency
-import { User } from './types';           // Non-component dependency
+### Understanding the Tree
 
-const UserList = ({ users }: { users: User[] }) => {
-  return (
-    <>
-      {users.map(user => <UserCard key={user.id} user={user} />)}
-    </>
-  );
-};
+```
+App (Root)
+├── Header (Branch)
+│   ├── Logo (Leaf)
+│   └── Navigation (Branch)
+│       ├── NavLink: Home (Leaf)
+│       ├── NavLink: About (Leaf)
+│       └── NavLink: Contact (Leaf)
+├── Main (Branch)
+│   ├── Sidebar (Branch)
+│   │   └── Menu (Leaf)
+│   └── Content (Branch)
+│       ├── Article (Leaf)
+│       └── Comments (Branch)
+│           ├── Comment 1 (Leaf)
+│           └── Comment 2 (Leaf)
+└── Footer (Leaf)
 ```
 
-### Differences Between the Trees
+### Key Concepts
 
-| Aspect | Render Tree | Module Dependency Tree |
-|--------|-------------|----------------------|
-| **Nodes** | React components | Modules (files) |
-| **Shows** | Component relationships | Import statements |
-| **Includes** | Only components | Components + utilities + data |
-| **Dynamic** | Changes per render | Static |
-| **Used by** | React (rendering) | Bundlers (webpack, vite) |
+| Component Type | Description | Example |
+|---------------|-------------|---------|
+| **Root** | Top-level component, entry point | `App` |
+| **Branch** | Has children, passes data down | `Header`, `Main` |
+| **Leaf** | No children, renders final UI | `Logo`, `Footer` |
 
-### Practical Applications
+### Why This Matters
 
-**Render Tree helps with:**
-- Debugging which components re-render
-- Understanding component hierarchy
-- Identifying performance bottlenecks
-- Optimizing with `React.memo()`
-
-**Module Dependency Tree helps with:**
-- Bundle size optimization
-- Code splitting strategies
-- Identifying circular dependencies
-- Understanding import costs
-
-### Visualizing Your App's Tree
-
-```tsx
-// Complex nested structure
-const App = () => {
-  return (
-    <Layout>                          {/* Level 1 */}
-      <Header>                        {/* Level 2 */}
-        <Logo />                      {/* Level 3 */}
-        <Navigation />                {/* Level 3 */}
-      </Header>
-      <Main>                          {/* Level 2 */}
-        <Sidebar>                     {/* Level 3 */}
-          <Menu />                    {/* Level 4 */}
-        </Sidebar>
-        <Content>                     {/* Level 3 */}
-          <Article />                 {/* Level 4 */}
-          <Comments>                  {/* Level 4 */}
-            <Comment />               {/* Level 5 */}
-            <Comment />               {/* Level 5 */}
-          </Comments>
-        </Content>
-      </Main>
-      <Footer />                      {/* Level 2 */}
-    </Layout>
-  );
-};
-```
-
-**Mental Model**: Think of your app as a tree where:
-- **Root** = Your main App component
-- **Branches** = Container/layout components
-- **Leaves** = Presentational components
+- **Data flows down**: Props flow from parent to child (top to bottom)
+- **Performance**: Changes to parent components affect all children below
+- **Debugging**: Understanding the tree helps locate issues
+- **Optimization**: Use `React.memo()` to skip re-renders of unchanged subtrees
 
 ---
 
@@ -820,7 +640,7 @@ npm install
 npm run dev
 ```
 
-3. Start modifying [src/App.tsx](src/App.tsx) and [src/components/HelloWorld.tsx](src/components/HelloWorld.tsx) to experiment with these concepts!
+3. Follow each section of this tutorial, updating [src/components/HelloWorld.tsx](src/components/HelloWorld.tsx) and [src/App.tsx](src/App.tsx) as you go!
 
 ---
 
@@ -834,12 +654,12 @@ npm run dev
 
 ## Summary
 
-This tutorial covered five fundamental React concepts:
+This tutorial covered five fundamental React concepts using the HelloWorld component:
 
-1. **Props**: Pass data between components with TypeScript interfaces
-2. **Conditional Rendering**: Display different UI based on conditions using JavaScript control flow
-3. **Rendering Lists**: Use `map()` and `filter()` with proper keys to display collections
-4. **Component Purity**: Keep components predictable by avoiding side effects during render
-5. **UI as a Tree**: Understand how React models your component hierarchy and module dependencies
+1. **Props**: Pass data to components with TypeScript interfaces
+2. **Conditional Rendering**: Display different UI based on conditions
+3. **Rendering Lists**: Use `map()` and `filter()` with proper keys
+4. **Component Purity**: Keep components predictable, use event handlers for side effects
+5. **UI as a Tree**: Understand component hierarchy and data flow
 
-Master these concepts and you'll have a solid foundation for building React applications with TypeScript.
+Master these concepts and you'll have a solid foundation for building React applications with TypeScript!
