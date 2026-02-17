@@ -1,11 +1,11 @@
+import { useContext } from 'react';
+import ThemeContext from '../contexts/ThemeContext';
 import Greeting from './Greeting';
 import './GreetingCard.scss';
 
-interface GreetingCardProps {
-  theme: 'light' | 'dark';
-}
 
-function GreetingCard({ theme }: GreetingCardProps) {
+function GreetingCard() {
+  const theme = useContext(ThemeContext);
   return (
     <div className={`greeting-card ${theme}`}>
       <Greeting theme={theme} />

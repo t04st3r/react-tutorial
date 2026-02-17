@@ -1,17 +1,18 @@
+import { useContext } from 'react';
+import ThemeContext from '../contexts/ThemeContext';
 import Toolbar from './Toolbar';
 import GreetingCard from './GreetingCard';
 import './Page.scss';
 
-interface PageProps {
-  theme: 'light' | 'dark';
-}
 
-function Page({ theme }: PageProps) {
+
+function Page() {
+  const theme = useContext(ThemeContext);
   return (
     <div className={`page ${theme}`}>
-      <Toolbar theme={theme} />
+      <Toolbar />
       <div className="page-content">
-        <GreetingCard theme={theme} />
+        <GreetingCard />
       </div>
     </div>
   );
