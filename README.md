@@ -1492,19 +1492,9 @@ src/
 
 ---
 
-## Next Steps
-
-Now that you understand Context, you're ready for:
-1. **Extracting State Logic into a Reducer** — Combine `useReducer` with Context for complex state management
-2. **Scaling Up with Reducer and Context** — The full production pattern for state management in React
-3. **React.memo and Context** — Learn how to prevent unnecessary re-renders when context values change
-
----
-
 ## Additional Resources
 
 - [React Docs: Passing Data Deeply with Context](https://react.dev/learn/passing-data-deeply-with-context)
-- [React Docs: Scaling Up with Reducer and Context](https://react.dev/learn/scaling-up-with-reducer-and-context)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 
 ---
