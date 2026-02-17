@@ -1,18 +1,14 @@
-import { useContext } from 'react';
-import ThemeContext from '../contexts/ThemeContext';
-import LanguageContext from '../contexts/LanguageContext';
+import useTheme from '../contexts/useTheme';
+import useLanguage from '../contexts/useLanguage';
+import useAppActions from '../contexts/useAppActions';
 import translations from '../translations';
 import type { Language } from '../contexts/LanguageContext';
 import './Toolbar.scss';
 
-interface ToolbarProps {
-  onToggleTheme: () => void;
-  onChangeLanguage: (lang: Language) => void;
-}
-
-function Toolbar({ onToggleTheme, onChangeLanguage }: ToolbarProps) {
-  const theme = useContext(ThemeContext);
-  const language = useContext(LanguageContext);
+function Toolbar() {
+  const theme = useTheme();
+  const language = useLanguage();
+  const { changeLanguage, toggleTheme } = useAppActions();
   const languages: Language[] = ['en', 'it', 'es'];
 
   return (
@@ -21,7 +17,7 @@ function Toolbar({ onToggleTheme, onChangeLanguage }: ToolbarProps) {
         {languages.map(lang => (
           <button
             key={lang}
-            onClick={() => onChangeLanguage(lang)}
+            onClick={() => changeLanguage(lang)}
             className={`toolbar-lang-button ${lang === language ? 'active' : `inactive ${theme}`}`}
           >
             {translations[lang].language}
@@ -29,7 +25,7 @@ function Toolbar({ onToggleTheme, onChangeLanguage }: ToolbarProps) {
         ))}
       </div>
       <button
-        onClick={onToggleTheme}
+        onClick={toggleTheme}
         className={`toolbar-toggle ${theme}`}
       >
         Switch to {theme === 'dark' ? 'light' : 'dark'}

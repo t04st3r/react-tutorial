@@ -1,14 +1,13 @@
-import { useContext } from 'react';
-import ThemeContext from '../contexts/ThemeContext';
-import LanguageContext from '../contexts/LanguageContext';
+import useTheme from '../contexts/useTheme';
+import useLanguage from '../contexts/useLanguage';
 import translations from '../translations';
 import Greeting from './Greeting';
 import './GreetingCard.scss';
 
 
 function GreetingCard() {
-  const theme = useContext(ThemeContext);
-  const language = useContext(LanguageContext);
+  const theme = useTheme();
+  const language = useLanguage();
   return (
     <div className={`greeting-card ${theme}`}>
       <Greeting />

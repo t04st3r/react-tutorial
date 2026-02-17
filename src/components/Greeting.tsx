@@ -1,13 +1,12 @@
-import { useContext } from 'react';
-import ThemeContext from '../contexts/ThemeContext';
-import LanguageContext from '../contexts/LanguageContext';
+import useLanguage from '../contexts/useLanguage';
+import useTheme from '../contexts/useTheme';
 import translations from '../translations';
 import './Greeting.scss';
 
 
 function Greeting() {
-  const theme = useContext(ThemeContext);
-  const language = useContext(LanguageContext);
+  const theme = useTheme();
+  const language = useLanguage();
   return (
     <h1 className={`greeting ${theme}`}>
       {translations[language].greeting}
