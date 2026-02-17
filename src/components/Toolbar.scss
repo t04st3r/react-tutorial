@@ -1,7 +1,10 @@
 .toolbar {
   padding: 8px 16px;
-  text-align: right;
   font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 
   &.light {
     background-color: #e8e8e8;
@@ -11,5 +14,55 @@
   &.dark {
     background-color: #1a1a2e;
     color: #e0e0e0;
+  }
+}
+
+.toolbar-languages {
+  display: flex;
+  gap: 4px;
+}
+
+.toolbar-lang-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &.active {
+    background-color: #007acc;
+    color: #fff;
+    border: 2px solid #007acc;
+    font-weight: bold;
+  }
+
+  &.inactive {
+    border: 1px solid transparent;
+    font-weight: normal;
+
+    &.light {
+      background-color: #ddd;
+      color: #333;
+    }
+
+    &.dark {
+      background-color: #2a2a4a;
+      color: #ccc;
+    }
+  }
+}
+
+.toolbar-toggle {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+
+  &.light {
+    background-color: #333;
+    color: #e0e0e0;
+  }
+
+  &.dark {
+    background-color: #e0e0e0;
+    color: #333;
   }
 }
