@@ -1,0 +1,18 @@
+.page {
+  min-height: 100vh;
+  transition: background-color 0.3s;
+
+  &.light {
+    background-color: #f5f5f5;
+  }
+
+  &.dark {
+    background-color: #0f0f23;
+  }
+}
+
+.page-content {
+  padding: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}

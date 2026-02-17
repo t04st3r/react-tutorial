@@ -1,0 +1,12 @@
+.greeting {
+  font-size: 2.5rem;
+  margin: 0 0 8px 0;
+
+  &.light {
+    color: #1a1a2e;
+  }
+
+  &.dark {
+    color: #ffffff;
+  }
+}

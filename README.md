@@ -22,16 +22,15 @@ React's Context API solves the same problem: making shared data available to dee
 3. [Core React Concepts Covered](#core-react-concepts-covered)
 4. [Setup](#setup)
 5. [Tutorial Steps](#tutorial-steps)
-   - [Step 1: Understanding the Starter Code](#step-1-understanding-the-starter-code)
-   - [Step 2: The Problem — Prop Drilling](#step-2-the-problem--prop-drilling)
-   - [Step 3: Creating a Context](#step-3-creating-a-context)
-   - [Step 4: Providing Context from a Parent](#step-4-providing-context-from-a-parent)
-   - [Step 5: Consuming Context with useContext](#step-5-consuming-context-with-usecontext)
-   - [Step 6: Making Context Dynamic with State](#step-6-making-context-dynamic-with-state)
-   - [Step 7: Adding a Second Context — Language](#step-7-adding-a-second-context--language)
-   - [Step 8: Encapsulating Providers into a Custom Provider Component](#step-8-encapsulating-providers-into-a-custom-provider-component)
-   - [Step 9: Writing Custom Hooks for Context](#step-9-writing-custom-hooks-for-context)
-   - [Step 10: Context Reads from the Nearest Provider](#step-10-context-reads-from-the-nearest-provider)
+   - [Step 1: The Problem — Prop Drilling](#step-1-the-problem--prop-drilling)
+   - [Step 2: Creating a Context](#step-2-creating-a-context)
+   - [Step 3: Providing Context from a Parent](#step-3-providing-context-from-a-parent)
+   - [Step 4: Consuming Context with useContext](#step-4-consuming-context-with-usecontext)
+   - [Step 5: Making Context Dynamic with State](#step-5-making-context-dynamic-with-state)
+   - [Step 6: Adding a Second Context — Language](#step-6-adding-a-second-context--language)
+   - [Step 7: Encapsulating Providers into a Custom Provider Component](#step-7-encapsulating-providers-into-a-custom-provider-component)
+   - [Step 8: Writing Custom Hooks for Context](#step-8-writing-custom-hooks-for-context)
+   - [Step 9: Context Reads from the Nearest Provider](#step-9-context-reads-from-the-nearest-provider)
 6. [Final Project Structure](#final-project-structure)
 7. [Key Takeaways](#key-takeaways)
 
@@ -103,178 +102,17 @@ npm run dev
 
 Open your browser at `http://localhost:5173`
 
-You should see the **Hello, world!** page rendered by the existing starter code.
+You should see a dark-themed page with a greeting card. The starter code demonstrates **prop drilling** — the `theme` value is passed from `App` through `Page` and `GreetingCard` even though they don't use it themselves.
 
 ---
 
 ## Tutorial Steps
 
-### Step 1: Understanding the Starter Code
+### Step 1: The Problem — Prop Drilling
 
-Open the three files that make up the starter app:
+Before learning Context, let's **understand the pain** it solves. Look at the starter code — a small component tree where a deeply nested component needs a `theme` value owned by a top-level parent.
 
-**`src/main.tsx`** — The entry point, renders `<App />` inside `<StrictMode>`:
-```typescript
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-```
-
-**`src/App.tsx`** — The root component, renders `<HelloWorld />`:
-```typescript
-import HelloWorld from './components/HelloWorld';
-
-function App() {
-  return <HelloWorld />;
-}
-
-export default App;
-```
-
-**`src/components/HelloWorld.tsx`** — A simple presentational component:
-```typescript
-import './HelloWorld.scss';
-
-function HelloWorld() {
-  return (
-    <div className="hello-world">
-      <h1>Hello, world!</h1>
-    </div>
-  );
-}
-
-export default HelloWorld;
-```
-
-**Key observation:** Right now, data flows from `App` → `HelloWorld` with no props at all. There's nothing to configure. Let's change that.
-
-**Python parallel:**
-Think of this as a Django project with a single view returning a static template — no configuration, no request context needed yet.
-
----
-
-### Step 2: The Problem — Prop Drilling
-
-Before learning Context, we need to **feel the pain** it solves. Let's build a small component tree where a deeply nested component needs a `theme` value owned by a top-level parent — and see how ugly prop drilling gets.
-
-**2.1 — Create the component tree**
-
-Create four new files. Notice how `theme` is passed through `Page` and `GreetingCard` even though they don't use it themselves — they just forward it along.
-
-**Create `src/components/Toolbar.tsx`:**
-
-```typescript
-interface ToolbarProps {
-  theme: 'light' | 'dark';
-}
-
-function Toolbar({ theme }: ToolbarProps) {
-  return (
-    <div style={{
-      padding: '8px 16px',
-      backgroundColor: theme === 'dark' ? '#1a1a2e' : '#e8e8e8',
-      color: theme === 'dark' ? '#e0e0e0' : '#333',
-      textAlign: 'right',
-      fontSize: '14px',
-    }}>
-      Current theme: <strong>{theme}</strong>
-    </div>
-  );
-}
-
-export default Toolbar;
-```
-
-**Create `src/components/Greeting.tsx`:**
-
-```typescript
-interface GreetingProps {
-  theme: 'light' | 'dark';
-}
-
-function Greeting({ theme }: GreetingProps) {
-  return (
-    <h1 style={{
-      color: theme === 'dark' ? '#ffffff' : '#1a1a2e',
-      fontSize: '2.5rem',
-      margin: '0 0 8px 0',
-    }}>
-      Hello, world!
-    </h1>
-  );
-}
-
-export default Greeting;
-```
-
-**Create `src/components/GreetingCard.tsx`:**
-
-```typescript
-import Greeting from './Greeting';
-
-interface GreetingCardProps {
-  theme: 'light' | 'dark';
-}
-
-function GreetingCard({ theme }: GreetingCardProps) {
-  return (
-    <div style={{
-      padding: '40px',
-      borderRadius: '12px',
-      backgroundColor: theme === 'dark' ? '#16213e' : '#ffffff',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      textAlign: 'center',
-    }}>
-      {/* GreetingCard doesn't USE theme — it just forwards it */}
-      <Greeting theme={theme} />
-      <p style={{ color: theme === 'dark' ? '#a0a0a0' : '#666', margin: 0 }}>
-        Welcome to the Context API tutorial
-      </p>
-    </div>
-  );
-}
-
-export default GreetingCard;
-```
-
-**Create `src/components/Page.tsx`:**
-
-```typescript
-import Toolbar from './Toolbar';
-import GreetingCard from './GreetingCard';
-
-interface PageProps {
-  theme: 'light' | 'dark';
-}
-
-function Page({ theme }: PageProps) {
-  return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme === 'dark' ? '#0f0f23' : '#f5f5f5',
-      transition: 'background-color 0.3s',
-    }}>
-      {/* Page doesn't USE theme either — just forwards it to children */}
-      <Toolbar theme={theme} />
-      <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-        <GreetingCard theme={theme} />
-      </div>
-    </div>
-  );
-}
-
-export default Page;
-```
-
-**2.2 — Update `src/App.tsx`:**
-
+**`src/App.tsx`** — The root component, owns the theme and passes it down:
 ```typescript
 import Page from './components/Page';
 
@@ -285,19 +123,185 @@ function App() {
 export default App;
 ```
 
-**2.3 — Run the app and observe**
+**`src/components/Page.tsx`** — Receives theme and forwards it:
+```typescript
+import Toolbar from './Toolbar';
+import GreetingCard from './GreetingCard';
+import './Page.scss';
 
-```bash
-npm run dev
+interface PageProps {
+  theme: 'light' | 'dark';
+}
+
+function Page({ theme }: PageProps) {
+  return (
+    <div className={`page ${theme}`}>
+      <Toolbar theme={theme} />
+      <div className="page-content">
+        <GreetingCard theme={theme} />
+      </div>
+    </div>
+  );
+}
+
+export default Page;
 ```
 
-You should see a dark-themed page with a greeting card. It works! But look at the data flow:
+**`src/components/Page.scss`:**
+```scss
+.page {
+  min-height: 100vh;
+  transition: background-color 0.3s;
+
+  &.light {
+    background-color: #f5f5f5;
+  }
+
+  &.dark {
+    background-color: #0f0f23;
+  }
+}
+
+.page-content {
+  padding: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+```
+
+**`src/components/GreetingCard.tsx`** — Receives theme and forwards it:
+```typescript
+import Greeting from './Greeting';
+import './GreetingCard.scss';
+
+interface GreetingCardProps {
+  theme: 'light' | 'dark';
+}
+
+function GreetingCard({ theme }: GreetingCardProps) {
+  return (
+    <div className={`greeting-card ${theme}`}>
+      <Greeting theme={theme} />
+      <p className={`greeting-card-subtitle ${theme}`}>
+        Welcome to the Context API tutorial
+      </p>
+    </div>
+  );
+}
+
+export default GreetingCard;
+```
+
+**`src/components/GreetingCard.scss`:**
+```scss
+.greeting-card {
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+
+  &.light {
+    background-color: #ffffff;
+  }
+
+  &.dark {
+    background-color: #16213e;
+  }
+}
+
+.greeting-card-subtitle {
+  margin: 0;
+
+  &.light {
+    color: #666;
+  }
+
+  &.dark {
+    color: #a0a0a0;
+  }
+}
+```
+
+**`src/components/Toolbar.tsx`** — Actually uses the theme:
+```typescript
+import './Toolbar.scss';
+
+interface ToolbarProps {
+  theme: 'light' | 'dark';
+}
+
+function Toolbar({ theme }: ToolbarProps) {
+  return (
+    <div className={`toolbar ${theme}`}>
+      Current theme: <strong>{theme}</strong>
+    </div>
+  );
+}
+
+export default Toolbar;
+```
+
+**`src/components/Toolbar.scss`:**
+```scss
+.toolbar {
+  padding: 8px 16px;
+  text-align: right;
+  font-size: 14px;
+
+  &.light {
+    background-color: #e8e8e8;
+    color: #333;
+  }
+
+  &.dark {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+  }
+}
+```
+
+**`src/components/Greeting.tsx`** — Actually uses the theme:
+```typescript
+import './Greeting.scss';
+
+interface GreetingProps {
+  theme: 'light' | 'dark';
+}
+
+function Greeting({ theme }: GreetingProps) {
+  return (
+    <h1 className={`greeting ${theme}`}>
+      Hello, world!
+    </h1>
+  );
+}
+
+export default Greeting;
+```
+
+**`src/components/Greeting.scss`:**
+```scss
+.greeting {
+  font-size: 2.5rem;
+  margin: 0 0 8px 0;
+
+  &.light {
+    color: #1a1a2e;
+  }
+
+  &.dark {
+    color: #ffffff;
+  }
+}
+```
+
+**Run the app and observe the data flow:**
 
 ```
 App  (owns theme="dark")
- └── Page  (receives theme, forwards it — doesn't use it)
+ └── Page  (receives theme, forwards and uses it)
       ├── Toolbar  (receives theme, uses it)
-      └── GreetingCard  (receives theme, forwards it — doesn't use it)
+      └── GreetingCard  (receives theme, forwards and uses it)
            └── Greeting  (receives theme, uses it)
 ```
 
@@ -309,15 +313,15 @@ App  (owns theme="dark")
 This is **prop drilling** — and it doesn't scale.
 
 **Python parallel:**
-Imagine a Django view that receives a `db_connection` and must pass it through 5 helper functions that don't use it, just so the innermost function can run a query. You'd use Django's `django.db.connection` instead — imported wherever needed, no manual threading. That's exactly what Context solves in React.
+Imagine a Django view that receives a `db_connection` and must pass it through 5 helper functions that barely uses it, just so the innermost function can run a query. You'd use Django's `django.db.connection` instead — imported wherever needed, no manual threading. That's exactly what Context solves in React.
 
 ---
 
-### Step 3: Creating a Context
+### Step 2: Creating a Context
 
 Now let's solve the prop drilling problem. The first step is to **create a Context** — a dedicated channel for the theme value.
 
-**3.1 — Create the contexts directory and file**
+**2.1 — Create the contexts directory and file**
 
 Create a new directory `src/contexts/` and add the following file:
 
@@ -336,6 +340,7 @@ export default ThemeContext;
 **What just happened:**
 - `createContext<Theme>('light')` creates a Context object.
 - The argument `'light'` is the **default value** — it's used when a component reads this context but there's **no matching Provider above it** in the tree. Think of it as a fallback.
+- For Provider we meant a **wrapper component that supplies a value to the subtree.** We'll create that in the next step.
 - The generic `<Theme>` gives us type safety.
 
 **Key concept — `createContext`:**
@@ -355,11 +360,11 @@ theme_var: ContextVar[str] = ContextVar('theme', default='light')
 
 ---
 
-### Step 4: Providing Context from a Parent
+### Step 3: Providing Context from a Parent
 
 A Context is useless until you **provide a value** to a subtree. You do this by wrapping components with the context's Provider.
 
-**4.1 — Update `src/App.tsx`:**
+**3.1 — Update `src/App.tsx`:**
 
 ```typescript
 import Page from './components/Page';
@@ -403,27 +408,24 @@ theme_var.set('dark')
 
 ---
 
-### Step 5: Consuming Context with useContext
+### Step 4: Consuming Context with useContext
 
 Now the exciting part — let's make components **read** from the context instead of receiving props.
 
-**5.1 — Update `src/components/Greeting.tsx`:**
+**4.1 — Update `src/components/Greeting.tsx`:**
 
 Remove the props interface and read theme from context instead:
 
 ```typescript
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
+import './Greeting.scss';
 
 function Greeting() {
   const theme = useContext(ThemeContext);
 
   return (
-    <h1 style={{
-      color: theme === 'dark' ? '#ffffff' : '#1a1a2e',
-      fontSize: '2.5rem',
-      margin: '0 0 8px 0',
-    }}>
+    <h1 className={`greeting ${theme}`}>
       Hello, world!
     </h1>
   );
@@ -432,23 +434,18 @@ function Greeting() {
 export default Greeting;
 ```
 
-**5.2 — Update `src/components/Toolbar.tsx`:**
+**4.2 — Update `src/components/Toolbar.tsx`:**
 
 ```typescript
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
+import './Toolbar.scss';
 
 function Toolbar() {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      padding: '8px 16px',
-      backgroundColor: theme === 'dark' ? '#1a1a2e' : '#e8e8e8',
-      color: theme === 'dark' ? '#e0e0e0' : '#333',
-      textAlign: 'right',
-      fontSize: '14px',
-    }}>
+    <div className={`toolbar ${theme}`}>
       Current theme: <strong>{theme}</strong>
     </div>
   );
@@ -457,7 +454,7 @@ function Toolbar() {
 export default Toolbar;
 ```
 
-**5.3 — Update `src/components/GreetingCard.tsx`:**
+**4.3 — Update `src/components/GreetingCard.tsx`:**
 
 This is the most satisfying change — `GreetingCard` **no longer needs theme at all**. It was only a middleman.
 
@@ -465,20 +462,15 @@ This is the most satisfying change — `GreetingCard` **no longer needs theme at
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
 import Greeting from './Greeting';
+import './GreetingCard.scss';
 
 function GreetingCard() {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      padding: '40px',
-      borderRadius: '12px',
-      backgroundColor: theme === 'dark' ? '#16213e' : '#ffffff',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      textAlign: 'center',
-    }}>
+    <div className={`greeting-card ${theme}`}>
       <Greeting />
-      <p style={{ color: theme === 'dark' ? '#a0a0a0' : '#666', margin: 0 }}>
+      <p className={`greeting-card-subtitle ${theme}`}>
         Welcome to the Context API tutorial
       </p>
     </div>
@@ -488,7 +480,7 @@ function GreetingCard() {
 export default GreetingCard;
 ```
 
-**5.4 — Update `src/components/Page.tsx`:**
+**4.4 — Update `src/components/Page.tsx`:**
 
 Page becomes a simple layout — **no props, no forwarding**:
 
@@ -497,18 +489,15 @@ import Toolbar from './Toolbar';
 import GreetingCard from './GreetingCard';
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
+import './Page.scss';
 
 function Page() {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme === 'dark' ? '#0f0f23' : '#f5f5f5',
-      transition: 'background-color 0.3s',
-    }}>
+    <div className={`page ${theme}`}>
       <Toolbar />
-      <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
+      <div className="page-content">
         <GreetingCard />
       </div>
     </div>
@@ -518,7 +507,7 @@ function Page() {
 export default Page;
 ```
 
-**5.5 — Run the app and verify**
+**4.5 — Run the app and verify**
 
 ```bash
 npm run dev
@@ -560,11 +549,11 @@ current_theme = theme_var.get()  # Reads from the nearest set() call
 
 ---
 
-### Step 6: Making Context Dynamic with State
+### Step 5: Making Context Dynamic with State
 
 Right now, the theme is hardcoded to `"dark"`. A real app needs to let users **toggle** it. We achieve this by combining Context with `useState`.
 
-**6.1 — Update `src/App.tsx`:**
+**5.1 — Update `src/App.tsx`:**
 
 ```typescript
 import { useState } from 'react';
@@ -588,11 +577,51 @@ function App() {
 export default App;
 ```
 
-**6.2 — Update `src/components/Toolbar.tsx` to include a toggle button:**
+**5.2 — Update `src/components/Toolbar.scss` to support the new layout with a toggle button:**
+
+```scss
+.toolbar {
+  padding: 8px 16px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &.light {
+    background-color: #e8e8e8;
+    color: #333;
+  }
+
+  &.dark {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+  }
+}
+
+.toolbar-toggle {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+
+  &.light {
+    background-color: #333;
+    color: #e0e0e0;
+  }
+
+  &.dark {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+}
+```
+
+**5.3 — Update `src/components/Toolbar.tsx` to include a toggle button:**
 
 ```typescript
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
+import './Toolbar.scss';
 
 interface ToolbarProps {
   onToggleTheme: () => void;
@@ -602,26 +631,11 @@ function Toolbar({ onToggleTheme }: ToolbarProps) {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      padding: '8px 16px',
-      backgroundColor: theme === 'dark' ? '#1a1a2e' : '#e8e8e8',
-      color: theme === 'dark' ? '#e0e0e0' : '#333',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: '14px',
-    }}>
+    <div className={`toolbar ${theme}`}>
       <span>Current theme: <strong>{theme}</strong></span>
       <button
         onClick={onToggleTheme}
-        style={{
-          padding: '4px 12px',
-          borderRadius: '4px',
-          border: 'none',
-          cursor: 'pointer',
-          backgroundColor: theme === 'dark' ? '#e0e0e0' : '#333',
-          color: theme === 'dark' ? '#333' : '#e0e0e0',
-        }}
+        className={`toolbar-toggle ${theme}`}
       >
         Switch to {theme === 'dark' ? 'light' : 'dark'}
       </button>
@@ -632,13 +646,14 @@ function Toolbar({ onToggleTheme }: ToolbarProps) {
 export default Toolbar;
 ```
 
-**6.3 — Update `src/components/Page.tsx` to forward the toggle handler:**
+**5.4 — Update `src/components/Page.tsx` to forward the toggle handler:**
 
 ```typescript
 import Toolbar from './Toolbar';
 import GreetingCard from './GreetingCard';
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
+import './Page.scss';
 
 interface PageProps {
   onToggleTheme: () => void;
@@ -648,13 +663,9 @@ function Page({ onToggleTheme }: PageProps) {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme === 'dark' ? '#0f0f23' : '#f5f5f5',
-      transition: 'background-color 0.3s',
-    }}>
+    <div className={`page ${theme}`}>
       <Toolbar onToggleTheme={onToggleTheme} />
-      <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
+      <div className="page-content">
         <GreetingCard />
       </div>
     </div>
@@ -664,7 +675,7 @@ function Page({ onToggleTheme }: PageProps) {
 export default Page;
 ```
 
-**6.4 — Run the app and click the toggle button**
+**5.5 — Run the app and click the toggle button**
 
 ```bash
 npm run dev
@@ -680,7 +691,7 @@ const [value, setValue] = useState(initial);
 <MyContext value={value}>   {/* all consumers re-render when value changes */}
 ```
 
-> **Did you notice?** We're still passing `onToggleTheme` as a prop through `Page` → `Toolbar`. This is a **deliberate choice** — not every callback needs to be in context. We'll address this pattern in Step 8, but it's important to know that Context and props coexist. Use context for **widely shared data**, and props for **direct parent-child communication**.
+> **Did you notice?** We're still passing `onToggleTheme` as a prop through `Page` → `Toolbar`. This is a **deliberate choice** — not every callback needs to be in context. We'll address this pattern in Step 7, but it's important to know that Context and props coexist. Use context for **widely shared data**, and props for **direct parent-child communication**.
 
 **Python parallel:**
 This is like updating a global config and having all dependent modules react:
@@ -690,11 +701,11 @@ theme_var.set('light')  # All readers of theme_var now get 'light'
 
 ---
 
-### Step 7: Adding a Second Context — Language
+### Step 6: Adding a Second Context — Language
 
 A real app often needs multiple contexts. Let's add a **language context** so the greeting changes based on the selected language. This demonstrates that **separate contexts are independent** — they don't interfere with each other.
 
-**7.1 — Create `src/contexts/LanguageContext.ts`:**
+**6.1 — Create `src/contexts/LanguageContext.ts`:**
 
 ```typescript
 import { createContext } from 'react';
@@ -707,7 +718,7 @@ export default LanguageContext;
 export type { Language };
 ```
 
-**7.2 — Create a translations map**
+**6.2 — Create a translations map**
 
 Create `src/translations.ts`:
 
@@ -733,24 +744,21 @@ const translations = {
 export default translations;
 ```
 
-**7.3 — Update `src/components/Greeting.tsx` to use both contexts:**
+**6.3 — Update `src/components/Greeting.tsx` to use both contexts:**
 
 ```typescript
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
 import LanguageContext from '../contexts/LanguageContext';
 import translations from '../translations';
+import './Greeting.scss';
 
 function Greeting() {
   const theme = useContext(ThemeContext);
   const language = useContext(LanguageContext);
 
   return (
-    <h1 style={{
-      color: theme === 'dark' ? '#ffffff' : '#1a1a2e',
-      fontSize: '2.5rem',
-      margin: '0 0 8px 0',
-    }}>
+    <h1 className={`greeting ${theme}`}>
       {translations[language].greeting}
     </h1>
   );
@@ -759,7 +767,7 @@ function Greeting() {
 export default Greeting;
 ```
 
-**7.4 — Update `src/components/GreetingCard.tsx`:**
+**6.4 — Update `src/components/GreetingCard.tsx`:**
 
 ```typescript
 import { useContext } from 'react';
@@ -767,21 +775,16 @@ import ThemeContext from '../contexts/ThemeContext';
 import LanguageContext from '../contexts/LanguageContext';
 import Greeting from './Greeting';
 import translations from '../translations';
+import './GreetingCard.scss';
 
 function GreetingCard() {
   const theme = useContext(ThemeContext);
   const language = useContext(LanguageContext);
 
   return (
-    <div style={{
-      padding: '40px',
-      borderRadius: '12px',
-      backgroundColor: theme === 'dark' ? '#16213e' : '#ffffff',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      textAlign: 'center',
-    }}>
+    <div className={`greeting-card ${theme}`}>
       <Greeting />
-      <p style={{ color: theme === 'dark' ? '#a0a0a0' : '#666', margin: 0 }}>
+      <p className={`greeting-card-subtitle ${theme}`}>
         {translations[language].subtitle}
       </p>
     </div>
@@ -791,7 +794,80 @@ function GreetingCard() {
 export default GreetingCard;
 ```
 
-**7.5 — Update `src/components/Toolbar.tsx` to add a language selector:**
+**6.5 — Update `src/components/Toolbar.scss` to add language button styles:**
+
+```scss
+.toolbar {
+  padding: 8px 16px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  &.light {
+    background-color: #e8e8e8;
+    color: #333;
+  }
+
+  &.dark {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+  }
+}
+
+.toolbar-languages {
+  display: flex;
+  gap: 4px;
+}
+
+.toolbar-lang-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &.active {
+    background-color: #007acc;
+    color: #fff;
+    border: 2px solid #007acc;
+    font-weight: bold;
+  }
+
+  &.inactive {
+    border: 1px solid transparent;
+    font-weight: normal;
+
+    &.light {
+      background-color: #ddd;
+      color: #333;
+    }
+
+    &.dark {
+      background-color: #2a2a4a;
+      color: #ccc;
+    }
+  }
+}
+
+.toolbar-toggle {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+
+  &.light {
+    background-color: #333;
+    color: #e0e0e0;
+  }
+
+  &.dark {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+}
+```
+
+**6.6 — Update `src/components/Toolbar.tsx` to add a language selector:**
 
 ```typescript
 import { useContext } from 'react';
@@ -799,6 +875,7 @@ import ThemeContext from '../contexts/ThemeContext';
 import LanguageContext from '../contexts/LanguageContext';
 import type { Language } from '../contexts/LanguageContext';
 import translations from '../translations';
+import './Toolbar.scss';
 
 interface ToolbarProps {
   onToggleTheme: () => void;
@@ -812,32 +889,13 @@ function Toolbar({ onToggleTheme, onChangeLanguage }: ToolbarProps) {
   const languages: Language[] = ['en', 'it', 'es'];
 
   return (
-    <div style={{
-      padding: '8px 16px',
-      backgroundColor: theme === 'dark' ? '#1a1a2e' : '#e8e8e8',
-      color: theme === 'dark' ? '#e0e0e0' : '#333',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: '14px',
-      gap: '8px',
-    }}>
-      <div style={{ display: 'flex', gap: '4px' }}>
+    <div className={`toolbar ${theme}`}>
+      <div className="toolbar-languages">
         {languages.map(lang => (
           <button
             key={lang}
             onClick={() => onChangeLanguage(lang)}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '4px',
-              border: lang === language ? '2px solid #007acc' : '1px solid transparent',
-              cursor: 'pointer',
-              backgroundColor: lang === language
-                ? (theme === 'dark' ? '#007acc' : '#007acc')
-                : (theme === 'dark' ? '#2a2a4a' : '#ddd'),
-              color: lang === language ? '#fff' : (theme === 'dark' ? '#ccc' : '#333'),
-              fontWeight: lang === language ? 'bold' : 'normal',
-            }}
+            className={`toolbar-lang-button ${lang === language ? 'active' : `inactive ${theme}`}`}
           >
             {translations[lang].language}
           </button>
@@ -845,14 +903,7 @@ function Toolbar({ onToggleTheme, onChangeLanguage }: ToolbarProps) {
       </div>
       <button
         onClick={onToggleTheme}
-        style={{
-          padding: '4px 12px',
-          borderRadius: '4px',
-          border: 'none',
-          cursor: 'pointer',
-          backgroundColor: theme === 'dark' ? '#e0e0e0' : '#333',
-          color: theme === 'dark' ? '#333' : '#e0e0e0',
-        }}
+        className={`toolbar-toggle ${theme}`}
       >
         Switch to {theme === 'dark' ? 'light' : 'dark'}
       </button>
@@ -863,7 +914,7 @@ function Toolbar({ onToggleTheme, onChangeLanguage }: ToolbarProps) {
 export default Toolbar;
 ```
 
-**7.6 — Update `src/components/Page.tsx`:**
+**6.7 — Update `src/components/Page.tsx`:**
 
 ```typescript
 import Toolbar from './Toolbar';
@@ -871,6 +922,7 @@ import GreetingCard from './GreetingCard';
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
 import type { Language } from '../contexts/LanguageContext';
+import './Page.scss';
 
 interface PageProps {
   onToggleTheme: () => void;
@@ -881,13 +933,9 @@ function Page({ onToggleTheme, onChangeLanguage }: PageProps) {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme === 'dark' ? '#0f0f23' : '#f5f5f5',
-      transition: 'background-color 0.3s',
-    }}>
+    <div className={`page ${theme}`}>
       <Toolbar onToggleTheme={onToggleTheme} onChangeLanguage={onChangeLanguage} />
-      <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
+      <div className="page-content">
         <GreetingCard />
       </div>
     </div>
@@ -897,7 +945,7 @@ function Page({ onToggleTheme, onChangeLanguage }: PageProps) {
 export default Page;
 ```
 
-**7.7 — Update `src/App.tsx` to provide both contexts:**
+**6.8 — Update `src/App.tsx` to provide both contexts:**
 
 ```typescript
 import { useState } from 'react';
@@ -926,7 +974,7 @@ function App() {
 export default App;
 ```
 
-**7.8 — Run the app and test**
+**6.9 — Run the app and test**
 
 ```bash
 npm run dev
@@ -950,13 +998,13 @@ language_var: ContextVar[str] = ContextVar('language', default='en')
 
 ---
 
-### Step 8: Encapsulating Providers into a Custom Provider Component
+### Step 7: Encapsulating Providers into a Custom Provider Component
 
 You may have noticed that `App.tsx` is accumulating state logic and nested providers. As the app grows, this becomes messy. The solution is to **encapsulate provider logic** into a dedicated component.
 
 Also notice that `onToggleTheme` and `onChangeLanguage` are still passed as props through `Page` to `Toolbar`. Let's fix both problems at once.
 
-**8.1 — Create `src/contexts/AppProviders.tsx`:**
+**7.1 — Create `src/contexts/AppProviders.tsx`:**
 
 ```typescript
 import { useState } from 'react';
@@ -1009,7 +1057,7 @@ export { AppActionsContext };
 - All state and provider nesting is encapsulated inside `AppProviders`.
 - The `children` prop pattern lets this component wrap any subtree.
 
-**8.2 — Simplify `src/App.tsx`:**
+**7.2 — Simplify `src/App.tsx`:**
 
 ```typescript
 import AppProviders from './contexts/AppProviders';
@@ -1028,7 +1076,7 @@ export default App;
 
 Look how clean that is — `App` has **zero state** and **zero props to pass**.
 
-**8.3 — Update `src/components/Toolbar.tsx` — no more prop drilling:**
+**7.3 — Update `src/components/Toolbar.tsx` — no more prop drilling:**
 
 ```typescript
 import { useContext } from 'react';
@@ -1037,6 +1085,7 @@ import LanguageContext from '../contexts/LanguageContext';
 import { AppActionsContext } from '../contexts/AppProviders';
 import type { Language } from '../contexts/LanguageContext';
 import translations from '../translations';
+import './Toolbar.scss';
 
 function Toolbar() {
   const theme = useContext(ThemeContext);
@@ -1046,32 +1095,13 @@ function Toolbar() {
   const languages: Language[] = ['en', 'it', 'es'];
 
   return (
-    <div style={{
-      padding: '8px 16px',
-      backgroundColor: theme === 'dark' ? '#1a1a2e' : '#e8e8e8',
-      color: theme === 'dark' ? '#e0e0e0' : '#333',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: '14px',
-      gap: '8px',
-    }}>
-      <div style={{ display: 'flex', gap: '4px' }}>
+    <div className={`toolbar ${theme}`}>
+      <div className="toolbar-languages">
         {languages.map(lang => (
           <button
             key={lang}
             onClick={() => changeLanguage(lang)}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '4px',
-              border: lang === language ? '2px solid #007acc' : '1px solid transparent',
-              cursor: 'pointer',
-              backgroundColor: lang === language
-                ? '#007acc'
-                : (theme === 'dark' ? '#2a2a4a' : '#ddd'),
-              color: lang === language ? '#fff' : (theme === 'dark' ? '#ccc' : '#333'),
-              fontWeight: lang === language ? 'bold' : 'normal',
-            }}
+            className={`toolbar-lang-button ${lang === language ? 'active' : `inactive ${theme}`}`}
           >
             {translations[lang].language}
           </button>
@@ -1079,14 +1109,7 @@ function Toolbar() {
       </div>
       <button
         onClick={toggleTheme}
-        style={{
-          padding: '4px 12px',
-          borderRadius: '4px',
-          border: 'none',
-          cursor: 'pointer',
-          backgroundColor: theme === 'dark' ? '#e0e0e0' : '#333',
-          color: theme === 'dark' ? '#333' : '#e0e0e0',
-        }}
+        className={`toolbar-toggle ${theme}`}
       >
         Switch to {theme === 'dark' ? 'light' : 'dark'}
       </button>
@@ -1097,25 +1120,22 @@ function Toolbar() {
 export default Toolbar;
 ```
 
-**8.4 — Simplify `src/components/Page.tsx` — no more forwarding props:**
+**7.4 — Simplify `src/components/Page.tsx` — no more forwarding props:**
 
 ```typescript
 import Toolbar from './Toolbar';
 import GreetingCard from './GreetingCard';
 import { useContext } from 'react';
 import ThemeContext from '../contexts/ThemeContext';
+import './Page.scss';
 
 function Page() {
   const theme = useContext(ThemeContext);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme === 'dark' ? '#0f0f23' : '#f5f5f5',
-      transition: 'background-color 0.3s',
-    }}>
+    <div className={`page ${theme}`}>
       <Toolbar />
-      <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
+      <div className="page-content">
         <GreetingCard />
       </div>
     </div>
@@ -1125,7 +1145,7 @@ function Page() {
 export default Page;
 ```
 
-**8.5 — Run and verify everything still works**
+**7.5 — Run and verify everything still works**
 
 ```bash
 npm run dev
@@ -1144,7 +1164,7 @@ This is like creating a middleware class in Django that sets up `request.theme`,
 
 ---
 
-### Step 9: Writing Custom Hooks for Context
+### Step 8: Writing Custom Hooks for Context
 
 Calling `useContext(ThemeContext)` everywhere works, but it has two drawbacks:
 1. You must remember to import both `useContext` and the specific context.
@@ -1152,7 +1172,7 @@ Calling `useContext(ThemeContext)` everywhere works, but it has two drawbacks:
 
 **Custom hooks** solve both problems.
 
-**9.1 — Create `src/contexts/useTheme.ts`:**
+**8.1 — Create `src/contexts/useTheme.ts`:**
 
 ```typescript
 import { useContext } from 'react';
@@ -1166,7 +1186,7 @@ function useTheme() {
 export default useTheme;
 ```
 
-**9.2 — Create `src/contexts/useLanguage.ts`:**
+**8.2 — Create `src/contexts/useLanguage.ts`:**
 
 ```typescript
 import { useContext } from 'react';
@@ -1180,7 +1200,7 @@ function useLanguage() {
 export default useLanguage;
 ```
 
-**9.3 — Create `src/contexts/useAppActions.ts`:**
+**8.3 — Create `src/contexts/useAppActions.ts`:**
 
 ```typescript
 import { useContext } from 'react';
@@ -1194,7 +1214,7 @@ function useAppActions() {
 export default useAppActions;
 ```
 
-**9.4 — Refactor components to use custom hooks**
+**8.4 — Refactor components to use custom hooks**
 
 Now update each component to use the cleaner hook API. Here's how each import changes:
 
@@ -1221,17 +1241,14 @@ For example, here's what `Greeting.tsx` looks like after the refactor:
 import useTheme from '../contexts/useTheme';
 import useLanguage from '../contexts/useLanguage';
 import translations from '../translations';
+import './Greeting.scss';
 
 function Greeting() {
   const theme = useTheme();
   const language = useLanguage();
 
   return (
-    <h1 style={{
-      color: theme === 'dark' ? '#ffffff' : '#1a1a2e',
-      fontSize: '2.5rem',
-      margin: '0 0 8px 0',
-    }}>
+    <h1 className={`greeting ${theme}`}>
       {translations[language].greeting}
     </h1>
   );
@@ -1248,6 +1265,7 @@ import useLanguage from '../contexts/useLanguage';
 import useAppActions from '../contexts/useAppActions';
 import type { Language } from '../contexts/LanguageContext';
 import translations from '../translations';
+import './Toolbar.scss';
 
 function Toolbar() {
   const theme = useTheme();
@@ -1280,40 +1298,73 @@ def get_current_theme() -> str:
 
 ---
 
-### Step 10: Context Reads from the Nearest Provider
+### Step 9: Context Reads from the Nearest Provider
 
 One powerful feature of context is that a consumer reads the value from the **closest matching provider** above it in the tree. This means you can **override** context locally for a subtree.
 
-**10.1 — Add a "local override" section to `src/components/Page.tsx`:**
+**9.1 — Update `src/components/Page.scss` to add the override section styles:**
+
+```scss
+.page {
+  min-height: 100vh;
+  transition: background-color 0.3s;
+
+  &.light {
+    background-color: #f5f5f5;
+  }
+
+  &.dark {
+    background-color: #0f0f23;
+  }
+}
+
+.page-content {
+  padding: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.page-override-section {
+  margin-top: 24px;
+}
+
+.page-override-label {
+  font-size: 12px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  &.light {
+    color: #666;
+  }
+
+  &.dark {
+    color: #888;
+  }
+}
+```
+
+**9.2 — Add a "local override" section to `src/components/Page.tsx`:**
 
 ```typescript
 import Toolbar from './Toolbar';
 import GreetingCard from './GreetingCard';
 import useTheme from '../contexts/useTheme';
 import ThemeContext from '../contexts/ThemeContext';
+import './Page.scss';
 
 function Page() {
   const theme = useTheme();
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme === 'dark' ? '#0f0f23' : '#f5f5f5',
-      transition: 'background-color 0.3s',
-    }}>
+    <div className={`page ${theme}`}>
       <Toolbar />
-      <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
+      <div className="page-content">
         <GreetingCard />
 
         {/* Local override: force light theme for this card only */}
-        <div style={{ marginTop: '24px' }}>
-          <p style={{
-            color: theme === 'dark' ? '#888' : '#666',
-            fontSize: '12px',
-            marginBottom: '8px',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-          }}>
+        <div className="page-override-section">
+          <p className={`page-override-label ${theme}`}>
             Nested provider override (always light):
           </p>
           <ThemeContext value="light">
@@ -1328,7 +1379,7 @@ function Page() {
 export default Page;
 ```
 
-**10.2 — Run the app and observe**
+**9.3 — Run the app and observe**
 
 ```bash
 npm run dev
@@ -1380,12 +1431,14 @@ src/
 │   ├── useLanguage.ts          # Custom hook for language
 │   └── useAppActions.ts        # Custom hook for actions
 ├── components/
-│   ├── HelloWorld.tsx           # Original starter (can be kept or removed)
-│   ├── HelloWorld.scss
 │   ├── Page.tsx                 # Layout with nested provider demo
+│   ├── Page.scss                # Page styles
 │   ├── Toolbar.tsx              # Theme toggle + language selector
+│   ├── Toolbar.scss             # Toolbar styles
 │   ├── GreetingCard.tsx         # Card container
-│   └── Greeting.tsx             # Heading that uses both contexts
+│   ├── GreetingCard.scss        # GreetingCard styles
+│   ├── Greeting.tsx             # Heading that uses both contexts
+│   └── Greeting.scss            # Greeting styles
 ├── translations.ts              # Translation strings
 ├── App.tsx                      # Clean root: just <AppProviders><Page /></AppProviders>
 ├── index.css                    # Global styles

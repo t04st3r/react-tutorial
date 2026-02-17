@@ -1,0 +1,26 @@
+.greeting-card {
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+
+  &.light {
+    background-color: #ffffff;
+  }
+
+  &.dark {
+    background-color: #16213e;
+  }
+}
+
+.greeting-card-subtitle {
+  margin: 0;
+
+  &.light {
+    color: #666;
+  }
+
+  &.dark {
+    color: #a0a0a0;
+  }
+}

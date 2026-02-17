@@ -1,7 +1,7 @@
-import HelloWorld from './components/HelloWorld';
+import Page from './components/Page';
 
 function App() {
-  return <HelloWorld />;
+  return <Page theme="dark" />;
 }
 
 export default App;
